@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { setupPurchases } from '@/lib/purchases';
 import { useApp } from '@/store/app-store';
 import { colors } from '@/theme/tokens';
 
@@ -62,6 +63,11 @@ export default function RootLayout() {
   useEffect(() => {
     if (ready) SplashScreen.hideAsync();
   }, [ready]);
+
+  // After hydration, so the subscription status from the store isn't overwritten by the saved one.
+  useEffect(() => {
+    if (hydrated) setupPurchases();
+  }, [hydrated]);
 
   if (!ready) return null;
 

@@ -40,13 +40,18 @@ Home-screen widgets, Screen Time and real in-app purchases need a development bu
 
 ## Before launch
 
-Things only you can do, roughly in order:
+Done in the code: the icon, Android adaptive icon and splash (the ۞ mark), the privacy and support pages in `site/`, and RevenueCat purchases in `src/lib/purchases.ts`. Things only you can do, roughly in order:
 
-1. **App icon and splash.** `assets/images/icon.png`, `assets/expo.icon` (iOS) and `assets/images/splash-icon.png` are still Expo's placeholders. Use a 1024×1024 icon with no transparency.
-2. **Privacy policy page.** Host one (it can be short: the app collects no data; everything stays on the phone) and put its address in `LINKS.privacy` in `src/lib/purchases.ts`. Apple rejects subscription apps without it.
-3. **Subscriptions.** Create the yearly (3-day trial) and monthly products in App Store Connect, connect them in RevenueCat, then replace the bodies of `purchase` and `restorePurchases` in `src/lib/purchases.ts`. That needs a development build (`npx expo install expo-dev-client react-native-purchases`, then `npx eas-cli@latest build --profile preview`), because Expo Go can't run in-app purchases.
-4. **Store listing.** Name, subtitle and keywords are in `docs/store-listing.md`. The App Privacy answer is "Data Not Collected".
-5. **Build and submit.** `npx eas-cli@latest build --platform ios --profile production`, then `npx eas-cli@latest submit --platform ios`. Build numbers increase automatically (`eas.json`).
-6. **Check on a real iPhone** that the ayah-end markers (۝ with a number) render as numbered circles, and that memorise mode wraps well on longer duas.
+1. **Publish the pages.** On GitHub: Settings → Pages → Source: **GitHub Actions**. The `Website` workflow then publishes `site/` on every push that changes it, at `https://zmrishh.github.io/scroll-quran/` (support) and `…/privacy.html` (the app already links there). GitHub Pages needs a public repo or a paid plan; if you'd rather not, drag `site/` onto Netlify Drop and update `LINKS.privacy`.
+2. **Subscriptions.**
+   - App Store Connect and Google Play Console: create a yearly subscription (3-day free trial) and a monthly one.
+   - RevenueCat: add both apps, an entitlement called `plus` with both products, and a current offering with them in the **Annual** and **Monthly** packages.
+   - Put the two public SDK keys in `.env` (`EXPO_PUBLIC_REVENUECAT_IOS_KEY`, `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`).
+   - Prices, currency and the trial length on the paywall then come from the store. Without keys the paywall runs in demo mode in development, and a release build refuses to unlock.
+   - Test real purchases with a preview build (`npx eas-cli@latest build --profile preview`) and a sandbox or test account. Expo Go only runs RevenueCat's mock mode.
+3. **Store listing.** Name, subtitle and keywords are in `docs/store-listing.md`. Support URL: the GitHub Pages address above. App Privacy (Apple) and Data safety (Google): **Purchase history**, used for app functionality, not linked to identity, not used for tracking. Nothing else is collected.
+4. **Build and submit.** `npx eas-cli@latest build --platform ios --profile production`, then `npx eas-cli@latest submit --platform ios`; the same with `--platform android`. Build numbers increase automatically (`eas.json`).
+5. **Google Play testing.** A personal Play developer account created after November 2023 must run a closed test with at least 12 testers for 14 days in a row before it can publish to production.
+6. **Check on a real iPhone and an Android phone** that the ayah-end markers (۝ with a number) render as numbered circles, that memorise mode wraps well on longer duas, and the splash and icon.
 
 Optional once you have users: crash reporting (Sentry has an Expo guide) and daily reminder notifications.

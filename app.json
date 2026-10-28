@@ -8,7 +8,6 @@
     "scheme": "scrollquran",
     "userInterfaceStyle": "dark",
     "ios": {
-      "icon": "./assets/expo.icon",
       "supportsTablet": false,
       "bundleIdentifier": "com.scrollquran.app",
       "infoPlist": {
@@ -37,7 +36,7 @@
         {
           "backgroundColor": "#0C1512",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 110
         }
       ],
       "expo-sharing"

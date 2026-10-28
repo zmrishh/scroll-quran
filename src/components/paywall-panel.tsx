@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { topicLabel, type Topic } from '@/data/content';
 import { haptic } from '@/lib/feedback';
-import { LINKS, openLink, PLANS, purchase, restorePurchases, type Plan } from '@/lib/purchases';
+import { isDemo, LINKS, loadPlans, openLink, purchase, restorePurchases, STORE, usePlans, type Plan } from '@/lib/purchases';
 import type { PaywallReason } from '@/lib/upsell';
 import { FREE_DAILY_CARDS, FREE_SAVES, useApp } from '@/store/app-store';
 import { colors, fonts } from '@/theme/tokens';
@@ -47,6 +47,8 @@ type Props = {
 /** What Plus gives, the two plans and the button. Used by the paywall screen and the end of the free feed. */
 export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
   const [plan, setPlan] = useState<Plan>('yearly');
+  const plans = usePlans();
+  const chosen = plans[plan];
   const picked = joinNames(useApp((s) => s.topics).map(topicLabel));
   const copy = copyFor(reason, topic, picked);
 
@@ -56,6 +58,16 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
     `Save as many cards as you like (free is ${FREE_SAVES})`,
     'Share cards without the watermark',
   ];
+
+  // Retries the store prices if they didn't load when the app opened.
+  useEffect(() => {
+    loadPlans();
+  }, []);
+
+  // Apple and Google both expect the renewal terms next to the button.
+  const terms = chosen.price
+    ? `${chosen.trialDays ? `Free for ${chosen.trialDays} days, then ${chosen.price}.` : `${chosen.price}.`} Renews automatically until you cancel in your ${STORE} settings, at least 24 hours before it renews.${isDemo ? ' Demo build: no payment is taken.' : ''}`
+    : '';
 
   return (
     <View>
@@ -72,8 +84,8 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
       </View>
 
       <View style={[styles.plans, compact && styles.plansCompact]}>
-        {(Object.keys(PLANS) as Plan[]).map((id) => {
-          const p = PLANS[id];
+        {(Object.keys(plans) as Plan[]).map((id) => {
+          const p = plans[id];
           const on = id === plan;
           return (
             <Pressable
@@ -94,7 +106,7 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
       </View>
 
       <PrimaryButton
-        label={plan === 'yearly' ? 'Start 3 days free' : 'Subscribe'}
+        label={chosen.trialDays ? `Start ${chosen.trialDays} days free` : 'Subscribe'}
         onPress={async () => {
           if (await purchase(plan)) {
             haptic.success();
@@ -103,10 +115,7 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
         }}
         style={{ marginTop: compact ? 16 : 22 }}
       />
-      <Text style={styles.fine}>
-        {plan === 'yearly' ? 'Cancel before day 3 and you pay nothing. ' : ''}Cancel any time in Settings. Demo build: no payment is
-        taken.
-      </Text>
+      <Text style={styles.fine}>{terms}</Text>
       <View style={styles.links}>
         <Pressable
           hitSlop={8}
@@ -114,7 +123,7 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
             if (await restorePurchases()) {
               haptic.success();
               onSubscribed?.();
-            } else Alert.alert('Nothing to restore', 'No earlier Scroll Quran Plus purchase was found for this Apple ID.');
+            }
           }}>
           <Text style={styles.link}>Restore purchases</Text>
         </Pressable>
