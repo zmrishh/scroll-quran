@@ -43,11 +43,12 @@ Home-screen widgets, Screen Time and real in-app purchases need a development bu
 Done in the code: the icon, Android adaptive icon and splash (the ۞ mark), the privacy and support pages in `site/`, RevenueCat purchases in `src/lib/purchases.ts`, and Apple and Google sign-in in `src/lib/auth.ts`. Things only you can do, roughly in order:
 
 1. **Publish the pages.** On GitHub: Settings → Pages → Source: **GitHub Actions**. The `Website` workflow then publishes `site/` on every push that changes it, at `https://zmrishh.github.io/scroll-quran/` (support) and `…/privacy.html` (the app already links there). GitHub Pages needs a public repo or a paid plan; if you'd rather not, drag `site/` onto Netlify Drop and update `LINKS.privacy`.
-2. **Subscriptions.**
-   - App Store Connect and Google Play Console: create a yearly and a monthly subscription, with no free trial.
-   - RevenueCat: add both apps, an entitlement called `plus` with both products, and a current offering with them in the **Annual** and **Monthly** packages.
+2. **Purchases.**
+   - App Store Connect and Google Play Console: create a yearly and a monthly subscription (no free trial), a one-time **lifetime** product for Plus, and one-time products for the card styles with these IDs: `style_blue`, `style_rosette`, `style_morocco`, `style_fatiha` (suggested $2.99 each) and `style_all` (suggested $7.99). On iOS the one-time products are non-consumables.
+   - RevenueCat: add both apps, an entitlement called `plus` with the yearly, monthly and lifetime products, and a current offering with them in the **Annual**, **Monthly** and **Lifetime** packages. The style products only need to exist in RevenueCat; the app checks them by product ID, so they need no entitlement or offering.
+   - Card styles come from `src/data/styles.ts`; Baghdad is free for everyone. To add a style, crop another public-domain manuscript from The Met into `assets/art/`, add it to `src/data/art.ts` and `src/data/styles.ts`, and create its product.
    - Put the two public SDK keys in `.env` (`EXPO_PUBLIC_REVENUECAT_IOS_KEY`, `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`).
-   - Prices, currency and the yearly saving on the paywall then come from the store. Without keys the paywall runs in demo mode in development, and a release build refuses to unlock.
+   - Prices, currency and the yearly saving then come from the store; the paywall hides Lifetime if the offering has no Lifetime package. Without keys the paywall runs in demo mode in development, and a release build refuses to unlock.
    - Test real purchases with a preview build (`npx eas-cli@latest build --profile preview`) and a sandbox or test account. Expo Go only runs RevenueCat's mock mode.
 3. **Sign-in.** There's no server: Apple or Google confirms who someone is, and their account ID becomes their RevenueCat customer, so Plus follows them to a new phone. Saved cards stay on the phone.
    - Apple (iPhone): nothing to set up in code (`usesAppleSignIn` is on). EAS turns on the Sign in with Apple capability when it builds.

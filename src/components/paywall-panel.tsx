@@ -54,7 +54,8 @@ type Props = {
 export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
   const [plan, setPlan] = useState<Plan>('yearly');
   const plans = usePlans();
-  const chosen = plans[plan];
+  const offered = (Object.keys(plans) as Plan[]).filter((id) => plans[id]);
+  const chosen = plans[plan] ?? plans.yearly!;
   const picked = joinNames(useApp((s) => s.topics).map(topicLabel));
   const goal = useApp((s) => s.dailyGoal);
   const copy = copyFor(reason, topic, picked, goal);
@@ -72,8 +73,9 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
   }, []);
 
   // Apple and Google both expect the renewal terms next to the button.
+  const once = plan === 'lifetime';
   const terms = chosen.price
-    ? `${chosen.price}. Renews automatically until you cancel in your ${STORE} settings, at least 24 hours before it renews.${isDemo ? ' Demo build: no payment is taken.' : ''}`
+    ? `${chosen.price}. ${once ? 'One payment. Nothing renews.' : `Renews automatically until you cancel in your ${STORE} settings, at least 24 hours before it renews.`}${isDemo ? ' Demo build: no payment is taken.' : ''}`
     : '';
 
   return (
@@ -91,8 +93,8 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
       </View>
 
       <View style={[styles.plans, compact && styles.plansCompact]}>
-        {(Object.keys(plans) as Plan[]).map((id) => {
-          const p = plans[id];
+        {offered.map((id) => {
+          const p = plans[id]!;
           const on = id === plan;
           return (
             <Pressable
@@ -116,7 +118,7 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
       </View>
 
       <PrimaryButton
-        label="Subscribe"
+        label={once ? 'Pay once' : 'Subscribe'}
         onPress={async () => {
           if (await purchase(plan)) {
             haptic.success();

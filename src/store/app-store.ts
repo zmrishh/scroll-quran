@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import type { Topic } from '@/data/content';
+import type { CardStyleId } from '@/data/styles';
 
 import { useCelebration } from './celebration';
 
@@ -45,6 +46,9 @@ type State = {
   account: Account | null;
   /** The last account signed in, kept after signing out: Apple only sends the name the first time. */
   lastProfile: Account | null;
+  cardStyle: CardStyleId;
+  /** Store product IDs of card styles bought. With RevenueCat set up, refreshed from it. */
+  ownedStyles: string[];
   totals: Totals;
   hintSeen: boolean;
   /** Names of Allah the reader has come across, for the collection meter. */
@@ -80,7 +84,9 @@ type Actions = {
   sayAmeen: (key: string) => void;
   addMemorised: () => void;
   setLastRead: (surah: number, ayah: number) => void;
-  set: (patch: Partial<Pick<State, 'display' | 'arabicSize' | 'haptics' | 'premium' | 'hintSeen' | 'dailyGoal'>>) => void;
+  set: (
+    patch: Partial<Pick<State, 'display' | 'arabicSize' | 'haptics' | 'premium' | 'hintSeen' | 'dailyGoal' | 'cardStyle' | 'ownedStyles'>>,
+  ) => void;
   resetAll: () => void;
 };
 
@@ -112,6 +118,8 @@ const initial: State = {
   lastActiveDay: '',
   account: null,
   lastProfile: null,
+  cardStyle: 'night',
+  ownedStyles: [],
   totals: { views: 0, dhikr: 0, quizAnswered: 0, quizCorrect: 0, memorised: 0, ameen: 0 },
   hintSeen: false,
   seenNames: {},

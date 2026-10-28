@@ -13,6 +13,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSequence, wi
 
 import { colors, fonts } from '@/theme/tokens';
 
+import { CardStyleLayer, useCardStyle } from './card-style';
 import { Icon } from './icon';
 
 const DOUBLE_TAP_MS = 260;
@@ -34,6 +35,7 @@ type Props = {
 /** A full-screen black page with its content centred and always fitting. */
 export function CardFrame({ height, contentTop, contentBottom, onDoubleTap, onSingleTap, shotRef, watermark, children, overlay }: Props) {
   const { width } = useWindowDimensions();
+  const look = useCardStyle();
   const lastTap = useRef(0);
   const pending = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [burstAt, setBurstAt] = useState({ x: 0, y: 0 });
@@ -75,6 +77,7 @@ export function CardFrame({ height, contentTop, contentBottom, onDoubleTap, onSi
     <View style={[styles.card, { height }]}>
       <Pressable onPress={onPress} style={StyleSheet.absoluteFill} accessible={false}>
         <View ref={shotRef} collapsable={false} style={[StyleSheet.absoluteFill, styles.card]}>
+          <CardStyleLayer style={look} height={height} contentTop={contentTop} contentBottom={contentBottom} />
           <View style={[styles.content, { paddingTop: contentTop, paddingBottom: contentBottom }]}>
             <FitBox>{children}</FitBox>
           </View>

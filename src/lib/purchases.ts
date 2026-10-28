@@ -1,16 +1,25 @@
 import { Alert, Linking, Platform } from 'react-native';
-import Purchases, { PURCHASES_ERROR_CODE, type CustomerInfo, type PurchasesError, type PurchasesPackage } from 'react-native-purchases';
+import Purchases, {
+  PRODUCT_CATEGORY,
+  PURCHASES_ERROR_CODE,
+  type CustomerInfo,
+  type PurchasesError,
+  type PurchasesPackage,
+  type PurchasesStoreProduct,
+} from 'react-native-purchases';
 import { create } from 'zustand';
 
+import { ALL_STYLES_PRODUCT, STYLE_PRODUCTS } from '@/data/styles';
 import { useApp, type Account } from '@/store/app-store';
 
-export type Plan = 'yearly' | 'monthly';
+export type Plan = 'yearly' | 'monthly' | 'lifetime';
 /** badge: the yearly plan's saving against paying monthly, worked out from the store prices. */
 export type PlanInfo = { title: string; price: string; note: string; badge: string | null };
 
 /**
- * RevenueCat setup this code expects: an entitlement with this identifier, and products for it in the
- * current offering's Annual and Monthly packages. There is no free trial.
+ * RevenueCat setup this code expects: an entitlement with this identifier, with the yearly, monthly and
+ * lifetime products attached, all in the current offering's Annual, Monthly and Lifetime packages.
+ * There is no free trial. Card styles are separate one-time products (see STYLE_PRODUCTS).
  */
 const ENTITLEMENT = 'plus';
 
@@ -25,21 +34,29 @@ export const isDemo = !API_KEY;
 export const STORE = Platform.OS === 'android' ? 'Google Play' : 'App Store';
 const STORE_ACCOUNT = Platform.OS === 'android' ? 'Google account' : 'Apple ID';
 
-const DEMO_PLANS: Record<Plan, PlanInfo> = {
+const DEMO_PLANS: Record<Plan, PlanInfo | null> = {
   yearly: { title: 'Yearly', price: '$29.99 a year', note: '$2.50 a month, billed yearly', badge: 'Save 50%' },
   monthly: { title: 'Monthly', price: '$4.99 a month', note: 'Cancel any time', badge: null },
+  lifetime: { title: 'Lifetime', price: '$49.99 once', note: 'Pay once, keep Plus for good', badge: null },
 };
 
 // With RevenueCat, prices stay blank until the store returns them in the user's own currency.
-const LOADING_PLANS: Record<Plan, PlanInfo> = {
+const LOADING_PLANS: Record<Plan, PlanInfo | null> = {
   yearly: { title: 'Yearly', price: '', note: '', badge: null },
   monthly: { title: 'Monthly', price: '', note: '', badge: null },
+  lifetime: null,
 };
 
-/** The plans as the paywall shows them. */
-export const usePlans = create<Record<Plan, PlanInfo>>(() => (isDemo ? DEMO_PLANS : LOADING_PLANS));
+/** The plans as the paywall shows them; null when the store has no such plan. */
+export const usePlans = create<Record<Plan, PlanInfo | null>>(() => (isDemo ? DEMO_PLANS : LOADING_PLANS));
+
+/** Card style prices by product ID, in the user's currency once the store answers. */
+export const useStylePrices = create<Record<string, string>>(() =>
+  isDemo ? Object.fromEntries(STYLE_PRODUCTS.map((p) => [p, p === ALL_STYLES_PRODUCT ? '$7.99' : '$2.99'])) : {},
+);
 
 let packages: Partial<Record<Plan, PurchasesPackage>> = {};
+let styleProducts: Record<string, PurchasesStoreProduct> = {};
 
 /**
  * Required on subscription paywalls (App Store guideline 3.1.2). Apple's standard licence works
@@ -54,9 +71,10 @@ export const openLink = (url: string) => Linking.openURL(url).catch(() => {});
 
 const isActive = (info: CustomerInfo) => ENTITLEMENT in info.entitlements.active;
 
-/** RevenueCat is the source of truth for Plus, so an expired or refunded subscription turns it off. */
+/** RevenueCat is the source of truth: an expired or refunded purchase turns Plus or a style off. */
 function applyCustomerInfo(info: CustomerInfo) {
-  useApp.getState().set({ premium: isActive(info) });
+  const ownedStyles = info.nonSubscriptionTransactions.map((t) => t.productIdentifier).filter((id) => STYLE_PRODUCTS.includes(id));
+  useApp.getState().set({ premium: isActive(info), ownedStyles });
 }
 
 /** The RevenueCat customer for an account. Only this opaque ID leaves the phone, never the name or email. */
@@ -64,7 +82,7 @@ export const customerId = (a: Account) => `${a.provider}_${a.id}`;
 
 let configured = false;
 
-/** Connects to RevenueCat once the saved state has loaded. Offline, the last known Plus status stays. */
+/** Connects to RevenueCat once the saved state has loaded. Offline, the last known status stays. */
 export async function setupPurchases() {
   if (isDemo || configured) return;
   configured = true;
@@ -74,10 +92,10 @@ export async function setupPurchases() {
   try {
     applyCustomerInfo(await Purchases.getCustomerInfo());
   } catch {}
-  await loadPlans();
+  await Promise.all([loadPlans(), loadStylePrices()]);
 }
 
-/** Ties the subscription to the account that just signed in, so it follows them to a new phone. */
+/** Ties purchases to the account that just signed in, so they follow it to a new phone. */
 export async function linkAccount(account: Account) {
   if (!configured) return;
   try {
@@ -98,7 +116,7 @@ export async function loadPlans() {
   try {
     const offering = (await Purchases.getOfferings()).current;
     if (!offering?.annual || !offering.monthly) return;
-    packages = { yearly: offering.annual, monthly: offering.monthly };
+    packages = { yearly: offering.annual, monthly: offering.monthly, lifetime: offering.lifetime ?? undefined };
     const year = offering.annual.product;
     const month = offering.monthly.product;
     const saving = Math.round((1 - year.price / (month.price * 12)) * 100);
@@ -110,18 +128,41 @@ export async function loadPlans() {
         badge: saving >= 5 ? `Save ${saving}%` : null,
       },
       monthly: { title: 'Monthly', price: `${month.priceString} a month`, note: 'Cancel any time', badge: null },
+      lifetime: offering.lifetime
+        ? { title: 'Lifetime', price: `${offering.lifetime.product.priceString} once`, note: 'Pay once, keep Plus for good', badge: null }
+        : null,
     });
   } catch {}
+}
+
+export async function loadStylePrices() {
+  if (!configured || Object.keys(styleProducts).length) return;
+  try {
+    const products = await Purchases.getProducts(STYLE_PRODUCTS, PRODUCT_CATEGORY.NON_SUBSCRIPTION);
+    styleProducts = Object.fromEntries(products.map((p) => [p.identifier, p]));
+    useStylePrices.setState(Object.fromEntries(products.map((p) => [p.identifier, p.priceString])));
+  } catch {}
+}
+
+/** Shows why a purchase failed, unless the person just cancelled it. */
+function purchaseFailed(e: unknown) {
+  const error = e as PurchasesError;
+  if (error.code !== PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
+    Alert.alert('The purchase didn’t go through', error.message || 'Please try again.');
+  }
+}
+
+/** Demo mode exists to try the paywall during development. A release build never unlocks without paying. */
+function demoAllowed() {
+  if (__DEV__) return true;
+  Alert.alert('Purchases aren’t set up', 'This build has no RevenueCat key.');
+  return false;
 }
 
 /** Buys a plan. Returns true once Plus is active; cancelling or failing returns false. */
 export async function purchase(plan: Plan): Promise<boolean> {
   if (isDemo) {
-    // Demo mode exists to try the paywall during development. A release build never unlocks without paying.
-    if (!__DEV__) {
-      Alert.alert('Purchases aren’t set up', 'This build has no RevenueCat key.');
-      return false;
-    }
+    if (!demoAllowed()) return false;
     useApp.getState().set({ premium: true });
     return true;
   }
@@ -136,21 +177,42 @@ export async function purchase(plan: Plan): Promise<boolean> {
     applyCustomerInfo(customerInfo);
     return isActive(customerInfo);
   } catch (e) {
-    const error = e as PurchasesError;
-    if (error.code !== PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
-      Alert.alert('The purchase didn’t go through', error.message || 'Please try again.');
-    }
+    purchaseFailed(e);
     return false;
   }
 }
 
-/** Restores Plus bought earlier on the same Apple ID or Google account. Tells the person if nothing was found. */
+/** Buys a card style, or all of them with ALL_STYLES_PRODUCT. Returns true once it's owned. */
+export async function buyStyle(product: string): Promise<boolean> {
+  if (isDemo) {
+    if (!demoAllowed()) return false;
+    useApp.getState().set({ ownedStyles: [...useApp.getState().ownedStyles, product] });
+    return true;
+  }
+  await loadStylePrices();
+  const item = styleProducts[product];
+  if (!item) {
+    Alert.alert(`Couldn’t reach the ${STORE}`, 'Check your connection and try again.');
+    return false;
+  }
+  try {
+    const { customerInfo } = await Purchases.purchaseStoreProduct(item);
+    applyCustomerInfo(customerInfo);
+    return useApp.getState().ownedStyles.includes(product);
+  } catch (e) {
+    purchaseFailed(e);
+    return false;
+  }
+}
+
+/** Restores Plus and card styles bought earlier on the same Apple ID or Google account. Says if nothing was found. */
 export async function restorePurchases(): Promise<boolean> {
   try {
-    const active = isDemo ? useApp.getState().premium : isActive(await Purchases.restorePurchases());
-    if (!isDemo) useApp.getState().set({ premium: active });
-    if (!active) Alert.alert('Nothing to restore', `No Scroll Quran Plus subscription was found for this ${STORE_ACCOUNT}.`);
-    return active;
+    if (!isDemo) applyCustomerInfo(await Purchases.restorePurchases());
+    const s = useApp.getState();
+    const found = s.premium || s.ownedStyles.length > 0;
+    if (!found) Alert.alert('Nothing to restore', `No Scroll Quran purchases were found for this ${STORE_ACCOUNT}.`);
+    return s.premium;
   } catch (e) {
     Alert.alert('Couldn’t restore', (e as PurchasesError).message || 'Check your connection and try again.');
     return false;

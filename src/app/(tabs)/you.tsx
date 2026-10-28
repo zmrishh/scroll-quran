@@ -2,11 +2,13 @@ import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useCardStyle } from '@/components/card-style';
 import { Icon } from '@/components/icon';
 import { PrimaryButton } from '@/components/primary-button';
 import { Segmented } from '@/components/segmented';
 import { Bar, Ring, SectionHeader, Surface } from '@/components/ui';
 import { NAMES } from '@/data/content';
+import { cardStyle } from '@/data/styles';
 import { moodInfo } from '@/data/moods';
 import { deleteAccount, signOut } from '@/lib/auth';
 import { confirm } from '@/lib/confirm';
@@ -46,6 +48,7 @@ const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padSt
 export default function YouScreen() {
   const insets = useSafeAreaInsets();
   const s = useApp();
+  const look = useCardStyle();
   const mood = moodToday(s);
   const namesMet = NAMES.filter((n) => s.seenNames[n.id]).length;
   const streak = currentStreak(s);
@@ -158,7 +161,8 @@ export default function YouScreen() {
 
         <SectionHeader title="Reading" />
         <Surface style={styles.group}>
-          <View style={styles.setting}>
+          <Row label="Card style" detail={cardStyle(look).name} onPress={() => router.push('/styles')} />
+          <View style={[styles.setting, styles.divider]}>
             <Text style={styles.settingLabel}>Daily goal</Text>
             <Segmented value={String(s.dailyGoal)} options={GOAL_OPTIONS} onChange={(g) => s.set({ dailyGoal: Number(g) })} />
           </View>
@@ -241,10 +245,13 @@ export default function YouScreen() {
   );
 }
 
-function Row({ label, onPress, divider, danger }: { label: string; onPress: () => void; divider?: boolean; danger?: boolean }) {
+type RowProps = { label: string; detail?: string; onPress: () => void; divider?: boolean; danger?: boolean };
+
+function Row({ label, detail, onPress, divider, danger }: RowProps) {
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.row, divider && styles.divider, pressed && { opacity: 0.6 }]}>
       <Text style={[styles.rowLabel, danger && { color: colors.wrong }]}>{label}</Text>
+      {detail && <Text style={styles.rowDetail}>{detail}</Text>}
       <Icon name="chevron-right" size={18} color={colors.faint} />
     </Pressable>
   );
@@ -292,6 +299,7 @@ const styles = StyleSheet.create({
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 },
   row: { flexDirection: 'row', alignItems: 'center', height: 52 },
   rowLabel: { flex: 1, fontFamily: fonts.uiMedium, fontSize: 15.5, color: colors.text },
+  rowDetail: { fontFamily: fonts.ui, fontSize: 14.5, color: colors.quiet, marginRight: 6 },
   account: { paddingVertical: 14 },
   accountName: { fontFamily: fonts.uiMedium, fontSize: 16, color: colors.text },
   accountNote: { fontFamily: fonts.ui, fontSize: 13, color: colors.quiet, marginTop: 2 },
