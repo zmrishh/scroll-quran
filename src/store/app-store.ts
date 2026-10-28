@@ -128,7 +128,7 @@ const initial: State = {
   lastActiveDay: '',
   account: null,
   lastProfile: null,
-  cardStyle: 'night',
+  cardStyle: 'glow',
   ownedStyles: [],
   totals: { views: 0, dhikr: 0, quizAnswered: 0, quizCorrect: 0, memorised: 0, ameen: 0 },
   hintSeen: false,
@@ -263,8 +263,14 @@ export const useApp = create<State & Actions>()(
     },
     {
       name: 'scroll-quran',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => storage),
+      // Version 3 made Glow the default look; anyone still on the old default, Night, moves to it.
+      migrate: (persisted, version) => {
+        const p = (persisted ?? {}) as Partial<State>;
+        if (version < 3 && (!p.cardStyle || p.cardStyle === 'night')) p.cardStyle = 'glow';
+        return p as State & Actions;
+      },
       // Saved state from older versions lacks newer totals; fill them from the defaults.
       merge: (persisted, current) => {
         const p = persisted as Partial<State> | undefined;

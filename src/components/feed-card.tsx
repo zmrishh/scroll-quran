@@ -106,6 +106,7 @@ export function FeedCard({ item, height, active, showHint, onMood }: Props) {
       contentTop={chrome.contentTop}
       contentBottom={chrome.contentBottom}
       shotRef={shotRef}
+      seed={key ?? item.key}
       watermark={capturing}
       onSingleTap={pages.length ? turn : undefined}
       onDoubleTap={

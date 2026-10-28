@@ -83,7 +83,7 @@ export default function Styles() {
                 onPress={() => choose(s)}
                 style={({ pressed }) => [styles.tile, pressed && { opacity: 0.8 }]}>
                 <View style={[styles.preview, active && styles.previewOn]}>
-                  <CardStyleLayer style={s.id} height={TILE_HEIGHT} contentTop={24} contentBottom={22} />
+                  <CardStyleLayer style={s.id} height={TILE_HEIGHT} contentTop={24} contentBottom={22} seed="ayah:94:5-6" />
                   <View style={styles.previewText}>
                     <Text style={styles.previewArabic}>{SAMPLE.ar}</Text>
                     <Text style={styles.previewEnglish}>{SAMPLE.en}</Text>

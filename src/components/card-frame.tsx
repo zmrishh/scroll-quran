@@ -26,6 +26,8 @@ type Props = {
   /** Called with 'next' or 'prev' for taps on the right or left of the card. */
   onSingleTap?: (side: 'next' | 'prev') => void;
   shotRef?: Ref<HostInstance>;
+  /** The card's content key: picks its Glow background. */
+  seed?: string;
   /** Shows the share watermark; only on while an image is being captured. */
   watermark?: boolean;
   children: ReactNode;
@@ -33,7 +35,7 @@ type Props = {
 };
 
 /** A full-screen black page with its content centred and always fitting. */
-export function CardFrame({ height, contentTop, contentBottom, onDoubleTap, onSingleTap, shotRef, watermark, children, overlay }: Props) {
+export function CardFrame({ height, contentTop, contentBottom, onDoubleTap, onSingleTap, shotRef, seed, watermark, children, overlay }: Props) {
   const { width } = useWindowDimensions();
   const look = useCardStyle();
   const lastTap = useRef(0);
@@ -77,7 +79,7 @@ export function CardFrame({ height, contentTop, contentBottom, onDoubleTap, onSi
     <View style={[styles.card, { height }]}>
       <Pressable onPress={onPress} style={StyleSheet.absoluteFill} accessible={false}>
         <View ref={shotRef} collapsable={false} style={[StyleSheet.absoluteFill, styles.card]}>
-          <CardStyleLayer style={look} height={height} contentTop={contentTop} contentBottom={contentBottom} />
+          <CardStyleLayer style={look} height={height} contentTop={contentTop} contentBottom={contentBottom} seed={seed} />
           <View style={[styles.content, { paddingTop: contentTop, paddingBottom: contentBottom }]}>
             <FitBox>{children}</FitBox>
           </View>

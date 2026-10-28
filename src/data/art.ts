@@ -40,3 +40,20 @@ export const ART = {
 } satisfies Record<string, Art>;
 
 export type ArtKey = keyof typeof ART;
+
+/**
+ * Soft backgrounds for the Glow card style: single pages from ten Met manuscripts (Tunisia, India, Iran, Turkey,
+ * Morocco, Iraq, Andalusia), blurred so they read as light and colour behind the verse.
+ */
+export const GLOW: readonly ImageSource[] = [
+  require('../../assets/glow/glow-1.jpg'),
+  require('../../assets/glow/glow-2.jpg'),
+  require('../../assets/glow/glow-3.jpg'),
+  require('../../assets/glow/glow-4.jpg'),
+  require('../../assets/glow/glow-5.jpg'),
+  require('../../assets/glow/glow-6.jpg'),
+  require('../../assets/glow/glow-7.jpg'),
+  require('../../assets/glow/glow-8.jpg'),
+  require('../../assets/glow/glow-9.jpg'),
+  require('../../assets/glow/glow-10.jpg'),
+];

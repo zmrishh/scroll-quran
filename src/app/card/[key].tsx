@@ -46,6 +46,7 @@ export default function CardViewer() {
         contentTop={contentTop}
         contentBottom={insets.bottom + 80}
         shotRef={shotRef}
+        seed={key}
         watermark={capturing}
         onSingleTap={
           pages.length

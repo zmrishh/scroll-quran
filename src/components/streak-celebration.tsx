@@ -3,7 +3,6 @@ import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
   FadeIn,
-  FadeOut,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
@@ -81,7 +80,6 @@ function Celebration({ streak }: { streak: number }) {
   return (
     <Animated.View
       entering={FadeIn.duration(250)}
-      exiting={FadeOut.duration(220)}
       style={[styles.backdrop, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}
       accessibilityViewIsModal
       accessibilityLabel={`${streak} day streak`}>
@@ -169,7 +167,7 @@ function TodayDot() {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, zIndex: 100, backgroundColor: 'rgba(9,17,14,0.96)', paddingHorizontal: 28 },
+  backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, zIndex: 100, backgroundColor: '#09110E', paddingHorizontal: 28 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   burst: { width: 300, height: 260, alignItems: 'center', justifyContent: 'center' },
   glow: { position: 'absolute', width: 190, height: 190, borderRadius: 95, backgroundColor: colors.goldSoft },
