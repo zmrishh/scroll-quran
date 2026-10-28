@@ -38,6 +38,17 @@ export default function About() {
           the Arabic text. The brighter key line on each card was chosen by hand and matches the translation word for word.
         </Block>
 
+        <Block title="Art">
+          The illumination in the app comes from Quran manuscripts in The Metropolitan Museum of Art, New York, released into
+          the public domain through its Open Access programme: the Blue Qur’an (Tunisia, 9th–10th century), the Anonymous
+          Baghdad Qur’an (Iraq, 1307), the Qur’an of Ibrahim Sultan (Iran, 1427), opening pages from Morocco (18th century) and
+          the opening of Al-Fatiha from India (about 1800).
+        </Block>
+        <Pressable onPress={() => Linking.openURL('https://www.metmuseum.org/hubs/open-access')} style={styles.link}>
+          <Text style={styles.linkText}>metmuseum.org/open-access</Text>
+          <Icon name="chevron-right" size={16} color={colors.text} />
+        </Pressable>
+
         <Block title="Typefaces">Amiri Quran, Amiri, Literata and Inter Tight, all under the SIL Open Font License.</Block>
 
         <Block title="No AI">
