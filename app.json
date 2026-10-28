@@ -23,7 +23,10 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.scrollquran.app"
+      "package": "com.scrollquran.app",
+      "blockedPermissions": [
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "output": "single",
@@ -43,7 +46,13 @@
       "expo-sharing",
       "expo-apple-authentication",
       "expo-image",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Scroll Quran uses your location to work out your prayer times."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

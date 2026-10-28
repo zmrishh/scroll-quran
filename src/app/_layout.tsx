@@ -81,6 +81,7 @@ export default function RootLayout() {
           <Stack.Screen name="about" options={{ presentation: 'modal' }} />
           <Stack.Screen name="privacy" options={{ presentation: 'modal' }} />
           <Stack.Screen name="terms" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="prayer-times" options={{ presentation: 'modal' }} />
           <Stack.Screen name="styles" options={{ presentation: 'modal' }} />
           <Stack.Screen name="surah/[n]" />
         </Stack>

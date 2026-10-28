@@ -4,6 +4,7 @@ import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-na
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/icon';
+import { PrayerCard } from '@/components/prayer-card';
 import { Surface } from '@/components/ui';
 import { surahInfo, SURAHS, type Surah } from '@/data/content';
 import { useApp } from '@/store/app-store';
@@ -38,6 +39,7 @@ export default function QuranScreen() {
         ListHeaderComponent={
           <View style={styles.header}>
             <Text style={styles.title}>Quran</Text>
+            <PrayerCard />
 
             {lastRead && (
               <Pressable onPress={() => openSurah(lastRead.surah, lastRead.ayah)}>

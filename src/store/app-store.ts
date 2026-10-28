@@ -4,6 +4,7 @@ import { createJSONStorage, persist, type StateStorage } from 'zustand/middlewar
 
 import type { Topic } from '@/data/content';
 import type { CardStyleId } from '@/data/styles';
+import type { AsrSchool, MethodId } from '@/lib/prayer';
 
 import { useCelebration } from './celebration';
 
@@ -47,6 +48,11 @@ type State = {
   /** The last account signed in, kept after signing out: Apple only sends the name the first time. */
   lastProfile: Account | null;
   cardStyle: CardStyleId;
+  /** Where prayer times are worked out for, rounded to about a kilometre. Never leaves the phone. */
+  prayerPlace: { lat: number; lng: number; at: number } | null;
+  /** Calculation method; null means the usual one for the phone's region. */
+  prayerMethod: MethodId | null;
+  asrSchool: AsrSchool;
   /** Store product IDs of card styles bought. With RevenueCat set up, refreshed from it. */
   ownedStyles: string[];
   totals: Totals;
@@ -85,7 +91,22 @@ type Actions = {
   addMemorised: () => void;
   setLastRead: (surah: number, ayah: number) => void;
   set: (
-    patch: Partial<Pick<State, 'display' | 'arabicSize' | 'haptics' | 'premium' | 'hintSeen' | 'dailyGoal' | 'cardStyle' | 'ownedStyles'>>,
+    patch: Partial<
+      Pick<
+        State,
+        | 'display'
+        | 'arabicSize'
+        | 'haptics'
+        | 'premium'
+        | 'hintSeen'
+        | 'dailyGoal'
+        | 'cardStyle'
+        | 'ownedStyles'
+        | 'prayerPlace'
+        | 'prayerMethod'
+        | 'asrSchool'
+      >
+    >,
   ) => void;
   resetAll: () => void;
 };
@@ -129,6 +150,9 @@ const initial: State = {
   account: null,
   lastProfile: null,
   cardStyle: 'glow',
+  prayerPlace: null,
+  prayerMethod: null,
+  asrSchool: 'standard',
   ownedStyles: [],
   totals: { views: 0, dhikr: 0, quizAnswered: 0, quizCorrect: 0, memorised: 0, ameen: 0 },
   hintSeen: false,

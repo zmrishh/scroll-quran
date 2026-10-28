@@ -35,6 +35,11 @@ export default function Privacy() {
         </Para>
       </Block>
 
+      <Block title="Location">
+        If you turn on prayer times, the app reads your phone’s approximate location and works out the times on your phone.
+        Your location is not sent anywhere. You can turn location access off at any time in your phone’s settings.
+      </Block>
+
       <Block title="Purchases">
         <Para>
           Scroll Quran Plus and card styles are sold through the App Store or Google Play. Apple or Google takes the payment;
