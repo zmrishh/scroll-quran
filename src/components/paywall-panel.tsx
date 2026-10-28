@@ -15,7 +15,7 @@ const joinNames = (names: string[]) =>
   names.length <= 1 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 
 /** Headline and one supporting line, written for why the paywall opened. */
-function copyFor(reason: PaywallReason, topic: Topic | undefined, picked: string) {
+function copyFor(reason: PaywallReason, topic: Topic | undefined, picked: string, goal: number) {
   switch (reason) {
     case 'limit':
       return { title: `That’s your ${FREE_DAILY_CARDS} for today.`, body: 'Plus has no daily limit, so you can keep reading now.' };
@@ -27,6 +27,12 @@ function copyFor(reason: PaywallReason, topic: Topic | undefined, picked: string
         body: 'Plus opens every topic feed and takes away the daily limit.',
       };
     default:
+      if (goal > FREE_DAILY_CARDS) {
+        return {
+          title: 'Your plan needs Plus.',
+          body: `Your goal is ${goal} cards a day, and the free plan stops at ${FREE_DAILY_CARDS}. Plus has no limit${picked ? ` and opens your ${picked} feeds` : ''}.`,
+        };
+      }
       return {
         title: 'Make it a daily habit.',
         body: picked
@@ -50,7 +56,8 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
   const plans = usePlans();
   const chosen = plans[plan];
   const picked = joinNames(useApp((s) => s.topics).map(topicLabel));
-  const copy = copyFor(reason, topic, picked);
+  const goal = useApp((s) => s.dailyGoal);
+  const copy = copyFor(reason, topic, picked, goal);
 
   const benefits = [
     `No daily limit (free is ${FREE_DAILY_CARDS} cards a day)`,
@@ -66,7 +73,7 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
 
   // Apple and Google both expect the renewal terms next to the button.
   const terms = chosen.price
-    ? `${chosen.trialDays ? `Free for ${chosen.trialDays} days, then ${chosen.price}.` : `${chosen.price}.`} Renews automatically until you cancel in your ${STORE} settings, at least 24 hours before it renews.${isDemo ? ' Demo build: no payment is taken.' : ''}`
+    ? `${chosen.price}. Renews automatically until you cancel in your ${STORE} settings, at least 24 hours before it renews.${isDemo ? ' Demo build: no payment is taken.' : ''}`
     : '';
 
   return (
@@ -96,7 +103,10 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
               }}
               style={[styles.plan, compact && styles.planCompact, on && styles.planOn]}>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.planTitle, on && { color: colors.text }]}>{p.title}</Text>
+                <View style={styles.planHead}>
+                  <Text style={[styles.planTitle, on && { color: colors.text }]}>{p.title}</Text>
+                  {p.badge && <Text style={styles.badge}>{p.badge}</Text>}
+                </View>
                 <Text style={styles.planNote}>{p.note}</Text>
               </View>
               <Text style={[styles.planPrice, on && { color: colors.text }]}>{p.price}</Text>
@@ -106,7 +116,7 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
       </View>
 
       <PrimaryButton
-        label={chosen.trialDays ? `Start ${chosen.trialDays} days free` : 'Subscribe'}
+        label="Subscribe"
         onPress={async () => {
           if (await purchase(plan)) {
             haptic.success();
@@ -152,7 +162,18 @@ const styles = StyleSheet.create({
   plan: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 14, borderWidth: 1, borderColor: colors.line, padding: 16 },
   planCompact: { paddingVertical: 12 },
   planOn: { borderColor: colors.gold },
+  planHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   planTitle: { fontFamily: fonts.uiMedium, fontSize: 16, color: colors.read },
+  badge: {
+    fontFamily: fonts.uiSemi,
+    fontSize: 11,
+    color: colors.page,
+    backgroundColor: colors.gold,
+    borderRadius: 6,
+    overflow: 'hidden',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
   planNote: { fontFamily: fonts.ui, fontSize: 13, color: colors.quiet, marginTop: 2 },
   planPrice: { fontFamily: fonts.uiMedium, fontSize: 15, color: colors.read },
   fine: { fontFamily: fonts.ui, fontSize: 12, lineHeight: 17, color: colors.faint, textAlign: 'center', marginTop: 12 },

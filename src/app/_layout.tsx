@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { StreakCelebration } from '@/components/streak-celebration';
 import { setupPurchases } from '@/lib/purchases';
 import { useApp } from '@/store/app-store';
 import { colors } from '@/theme/tokens';
@@ -77,11 +78,13 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.page } }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="onboarding" options={{ animation: 'fade', gestureEnabled: false }} />
+          <Stack.Screen name="sign-in" options={{ animation: 'fade', gestureEnabled: false }} />
           <Stack.Screen name="paywall" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
           <Stack.Screen name="card/[key]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
           <Stack.Screen name="about" options={{ presentation: 'modal' }} />
           <Stack.Screen name="surah/[n]" />
         </Stack>
+        <StreakCelebration />
       </ThemeProvider>
     </GestureHandlerRootView>
   );

@@ -1,22 +1,16 @@
 import { Alert, Linking, Platform } from 'react-native';
-import Purchases, {
-  INTRO_ELIGIBILITY_STATUS,
-  PURCHASES_ERROR_CODE,
-  type CustomerInfo,
-  type PurchasesError,
-  type PurchasesPackage,
-  type PurchasesStoreProduct,
-} from 'react-native-purchases';
+import Purchases, { PURCHASES_ERROR_CODE, type CustomerInfo, type PurchasesError, type PurchasesPackage } from 'react-native-purchases';
 import { create } from 'zustand';
 
-import { useApp } from '@/store/app-store';
+import { useApp, type Account } from '@/store/app-store';
 
 export type Plan = 'yearly' | 'monthly';
-export type PlanInfo = { title: string; price: string; note: string; trialDays: number };
+/** badge: the yearly plan's saving against paying monthly, worked out from the store prices. */
+export type PlanInfo = { title: string; price: string; note: string; badge: string | null };
 
 /**
  * RevenueCat setup this code expects: an entitlement with this identifier, and products for it in the
- * current offering's Annual and Monthly packages.
+ * current offering's Annual and Monthly packages. There is no free trial.
  */
 const ENTITLEMENT = 'plus';
 
@@ -29,17 +23,17 @@ const API_KEY = Platform.select({
 export const isDemo = !API_KEY;
 
 export const STORE = Platform.OS === 'android' ? 'Google Play' : 'App Store';
-const ACCOUNT = Platform.OS === 'android' ? 'Google account' : 'Apple ID';
+const STORE_ACCOUNT = Platform.OS === 'android' ? 'Google account' : 'Apple ID';
 
 const DEMO_PLANS: Record<Plan, PlanInfo> = {
-  yearly: { title: 'Yearly', price: '$29.99 a year', note: '3 days free, then $2.50 a month', trialDays: 3 },
-  monthly: { title: 'Monthly', price: '$4.99 a month', note: 'Cancel any time', trialDays: 0 },
+  yearly: { title: 'Yearly', price: '$29.99 a year', note: '$2.50 a month, billed yearly', badge: 'Save 50%' },
+  monthly: { title: 'Monthly', price: '$4.99 a month', note: 'Cancel any time', badge: null },
 };
 
 // With RevenueCat, prices stay blank until the store returns them in the user's own currency.
 const LOADING_PLANS: Record<Plan, PlanInfo> = {
-  yearly: { title: 'Yearly', price: '', note: '', trialDays: 0 },
-  monthly: { title: 'Monthly', price: '', note: '', trialDays: 0 },
+  yearly: { title: 'Yearly', price: '', note: '', badge: null },
+  monthly: { title: 'Monthly', price: '', note: '', badge: null },
 };
 
 /** The plans as the paywall shows them. */
@@ -65,18 +59,37 @@ function applyCustomerInfo(info: CustomerInfo) {
   useApp.getState().set({ premium: isActive(info) });
 }
 
+/** The RevenueCat customer for an account. Only this opaque ID leaves the phone, never the name or email. */
+export const customerId = (a: Account) => `${a.provider}_${a.id}`;
+
 let configured = false;
 
 /** Connects to RevenueCat once the saved state has loaded. Offline, the last known Plus status stays. */
 export async function setupPurchases() {
   if (isDemo || configured) return;
   configured = true;
-  Purchases.configure({ apiKey: API_KEY! });
+  const account = useApp.getState().account;
+  Purchases.configure({ apiKey: API_KEY!, appUserID: account ? customerId(account) : null });
   Purchases.addCustomerInfoUpdateListener(applyCustomerInfo);
   try {
     applyCustomerInfo(await Purchases.getCustomerInfo());
   } catch {}
   await loadPlans();
+}
+
+/** Ties the subscription to the account that just signed in, so it follows them to a new phone. */
+export async function linkAccount(account: Account) {
+  if (!configured) return;
+  try {
+    applyCustomerInfo((await Purchases.logIn(customerId(account))).customerInfo);
+  } catch {}
+}
+
+export async function unlinkAccount() {
+  if (!configured) return;
+  try {
+    if (!(await Purchases.isAnonymous())) applyCustomerInfo(await Purchases.logOut());
+  } catch {}
 }
 
 /** Fetches prices from the store. Safe to call again, e.g. when the paywall opens after a failed load. */
@@ -86,36 +99,19 @@ export async function loadPlans() {
     const offering = (await Purchases.getOfferings()).current;
     if (!offering?.annual || !offering.monthly) return;
     packages = { yearly: offering.annual, monthly: offering.monthly };
-    const trial = await trialDays(offering.annual.product);
+    const year = offering.annual.product;
+    const month = offering.monthly.product;
+    const saving = Math.round((1 - year.price / (month.price * 12)) * 100);
     usePlans.setState({
-      yearly: { title: 'Yearly', price: `${offering.annual.product.priceString} a year`, note: yearlyNote(offering.annual.product, trial), trialDays: trial },
-      monthly: { title: 'Monthly', price: `${offering.monthly.product.priceString} a month`, note: 'Cancel any time', trialDays: 0 },
+      yearly: {
+        title: 'Yearly',
+        price: `${year.priceString} a year`,
+        note: year.pricePerMonthString ? `${year.pricePerMonthString} a month, billed yearly` : 'Billed yearly',
+        badge: saving >= 5 ? `Save ${saving}%` : null,
+      },
+      monthly: { title: 'Monthly', price: `${month.priceString} a month`, note: 'Cancel any time', badge: null },
     });
   } catch {}
-}
-
-const DAYS: Record<string, number> = { DAY: 1, WEEK: 7, MONTH: 30, YEAR: 365 };
-
-/** Length of the free trial this person can still get, in days; 0 if there isn't one or it was used. */
-async function trialDays(product: PurchasesStoreProduct) {
-  if (Platform.OS === 'android') {
-    // Google Play only offers a free phase to people who are eligible for it.
-    const free = product.defaultOption?.freePhase?.billingPeriod;
-    return free ? free.value * (DAYS[free.unit] ?? 0) : 0;
-  }
-  const intro = product.introPrice;
-  if (!intro || intro.price !== 0) return 0;
-  try {
-    const status = (await Purchases.checkTrialOrIntroductoryPriceEligibility([product.identifier]))[product.identifier]?.status;
-    if (status === INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_INELIGIBLE) return 0;
-  } catch {}
-  return intro.periodNumberOfUnits * intro.cycles * (DAYS[intro.periodUnit] ?? 0);
-}
-
-function yearlyNote(product: PurchasesStoreProduct, trial: number) {
-  const monthly = product.pricePerMonthString;
-  if (trial) return monthly ? `${trial} days free, then ${monthly} a month` : `${trial} days free`;
-  return monthly ? `${monthly} a month, billed yearly` : 'Billed yearly';
 }
 
 /** Buys a plan. Returns true once Plus is active; cancelling or failing returns false. */
@@ -153,7 +149,7 @@ export async function restorePurchases(): Promise<boolean> {
   try {
     const active = isDemo ? useApp.getState().premium : isActive(await Purchases.restorePurchases());
     if (!isDemo) useApp.getState().set({ premium: active });
-    if (!active) Alert.alert('Nothing to restore', `No Scroll Quran Plus subscription was found for this ${ACCOUNT}.`);
+    if (!active) Alert.alert('Nothing to restore', `No Scroll Quran Plus subscription was found for this ${STORE_ACCOUNT}.`);
     return active;
   } catch (e) {
     Alert.alert('Couldn’t restore', (e as PurchasesError).message || 'Check your connection and try again.');

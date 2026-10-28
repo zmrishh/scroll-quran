@@ -4,10 +4,18 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import type { Topic } from '@/data/content';
 
+import { useCelebration } from './celebration';
+
 /** Free users read this many cards a day, then the feed ends in a paywall until tomorrow. */
 export const FREE_DAILY_CARDS = 5;
 /** Free users can keep this many saved cards. */
 export const FREE_SAVES = 3;
+
+/** Daily goals offered in onboarding, in cards. */
+export const DAILY_GOALS = [5, 10, 20] as const;
+
+/** Who is signed in. The ID comes from Apple or Google; name and email never leave the phone. */
+export type Account = { provider: 'apple' | 'google' | 'test'; id: string; name: string | null; email: string | null };
 
 export type Display = 'both' | 'arabic' | 'english';
 export type ArabicSize = 's' | 'm' | 'l';
@@ -29,15 +37,21 @@ type State = {
   premium: boolean;
   day: string;
   viewedToday: number;
+  /** Cards a day that complete a streak day. Free users' goal is capped at the free limit. */
+  dailyGoal: number;
   streak: number;
+  /** The last day the daily goal was reached. */
   lastActiveDay: string;
+  account: Account | null;
+  /** The last account signed in, kept after signing out: Apple only sends the name the first time. */
+  lastProfile: Account | null;
   totals: Totals;
   hintSeen: boolean;
   /** Names of Allah the reader has come across, for the collection meter. */
   seenNames: Record<string, true>;
   /** Consecutive correct quiz answers. */
   quizStreak: number;
-  /** Days (YYYY-MM-DD) the app was opened, newest last, capped at 60. */
+  /** Days (YYYY-MM-DD) the daily goal was reached, newest last, capped at 60. */
   activeDays: string[];
   /** Private reflections, keyed like saves ("<kind>:<id>"). */
   notes: Record<string, Note>;
@@ -50,7 +64,8 @@ type State = {
 };
 
 type Actions = {
-  completeOnboarding: (topics: Topic[], display: Display) => void;
+  completeOnboarding: (topics: Topic[], display: Display, dailyGoal: number) => void;
+  setAccount: (account: Account | null) => void;
   touchDay: () => void;
   recordView: () => void;
   seeName: (id: string) => void;
@@ -65,7 +80,7 @@ type Actions = {
   sayAmeen: (key: string) => void;
   addMemorised: () => void;
   setLastRead: (surah: number, ayah: number) => void;
-  set: (patch: Partial<Pick<State, 'display' | 'arabicSize' | 'haptics' | 'premium' | 'hintSeen'>>) => void;
+  set: (patch: Partial<Pick<State, 'display' | 'arabicSize' | 'haptics' | 'premium' | 'hintSeen' | 'dailyGoal'>>) => void;
   resetAll: () => void;
 };
 
@@ -92,8 +107,11 @@ const initial: State = {
   premium: false,
   day: today(),
   viewedToday: 0,
+  dailyGoal: FREE_DAILY_CARDS,
   streak: 0,
   lastActiveDay: '',
+  account: null,
+  lastProfile: null,
   totals: { views: 0, dhikr: 0, quizAnswered: 0, quizCorrect: 0, memorised: 0, ameen: 0 },
   hintSeen: false,
   seenNames: {},
@@ -118,32 +136,40 @@ export const useApp = create<State & Actions>()(
       return {
         ...initial,
 
-        completeOnboarding: (topics, display) => {
+        completeOnboarding: (topics, display, dailyGoal) => {
           const affinity: Partial<Record<Topic, number>> = {};
           for (const t of topics) affinity[t] = 4;
-          set({ onboarded: true, topics, display, affinity });
+          set({ onboarded: true, topics, display, affinity, dailyGoal });
         },
 
+        setAccount: (account) => set(account ? { account, lastProfile: account } : { account: null }),
+
+        // Starts a new day's count. The streak itself only moves when the daily goal is reached.
         touchDay: () => {
+          const t = today();
+          if (get().day !== t) set({ day: t, viewedToday: 0 });
+        },
+
+        recordView: () => {
           const s = get();
           const t = today();
-          if (s.lastActiveDay === t) return;
+          const viewedToday = s.day === t ? s.viewedToday + 1 : 1;
+          const totals = { ...s.totals, views: s.totals.views + 1 };
+          if (viewedToday < dailyTarget(s) || s.lastActiveDay === t) {
+            set({ day: t, viewedToday, totals });
+            return;
+          }
           const streak = s.lastActiveDay === yesterday() ? s.streak + 1 : 1;
           set({
-            lastActiveDay: t,
-            streak,
             day: t,
-            viewedToday: s.day === t ? s.viewedToday : 0,
+            viewedToday,
+            totals,
+            streak,
+            lastActiveDay: t,
             activeDays: [...s.activeDays.filter((d) => d !== t), t].slice(-60),
           });
+          useCelebration.setState({ streak });
         },
-
-        recordView: () =>
-          set((s) => {
-            const t = today();
-            const viewedToday = s.day === t ? s.viewedToday + 1 : 1;
-            return { day: t, viewedToday, totals: { ...s.totals, views: s.totals.views + 1 } };
-          }),
 
         nudge,
 
@@ -232,6 +258,16 @@ export const useApp = create<State & Actions>()(
 
 /** Today's mood, if the reader has checked in today. */
 export const moodToday = (s: Pick<State, 'mood'>) => (s.mood?.day === today() ? s.mood.mood : null);
+
+/** Cards that complete today's streak day. A free user's goal can't be more than they're allowed to read. */
+export const dailyTarget = (s: Pick<State, 'premium' | 'dailyGoal'>) =>
+  s.premium ? s.dailyGoal : Math.min(s.dailyGoal, FREE_DAILY_CARDS);
+
+/** The streak as it stands now: it lapses once a whole day passes without reaching the goal. */
+export const currentStreak = (s: Pick<State, 'streak' | 'lastActiveDay'>) =>
+  s.lastActiveDay === today() || s.lastActiveDay === yesterday() ? s.streak : 0;
+
+export const isToday = (day: string) => day === today();
 
 /** Cards a free user can still see today. */
 export const remainingToday = (s: Pick<State, 'premium' | 'viewedToday' | 'day'>) =>

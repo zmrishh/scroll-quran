@@ -36,9 +36,9 @@ export default function FeedScreen() {
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state !== 'active') return;
-      const before = useApp.getState().lastActiveDay;
+      const before = useApp.getState().day;
       useApp.getState().touchDay();
-      if (useApp.getState().lastActiveDay !== before) restart.current();
+      if (useApp.getState().day !== before) restart.current();
     });
     return () => sub.remove();
   }, []);

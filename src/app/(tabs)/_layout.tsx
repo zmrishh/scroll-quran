@@ -6,7 +6,9 @@ import { useApp } from '@/store/app-store';
 
 export default function TabsLayout() {
   const onboarded = useApp((s) => s.onboarded);
+  const signedIn = useApp((s) => !!s.account);
   if (!onboarded) return <Redirect href="/onboarding" />;
+  if (!signedIn) return <Redirect href="/sign-in" />;
 
   return (
     <Tabs>

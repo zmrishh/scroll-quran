@@ -40,18 +40,23 @@ Home-screen widgets, Screen Time and real in-app purchases need a development bu
 
 ## Before launch
 
-Done in the code: the icon, Android adaptive icon and splash (the ۞ mark), the privacy and support pages in `site/`, and RevenueCat purchases in `src/lib/purchases.ts`. Things only you can do, roughly in order:
+Done in the code: the icon, Android adaptive icon and splash (the ۞ mark), the privacy and support pages in `site/`, RevenueCat purchases in `src/lib/purchases.ts`, and Apple and Google sign-in in `src/lib/auth.ts`. Things only you can do, roughly in order:
 
 1. **Publish the pages.** On GitHub: Settings → Pages → Source: **GitHub Actions**. The `Website` workflow then publishes `site/` on every push that changes it, at `https://zmrishh.github.io/scroll-quran/` (support) and `…/privacy.html` (the app already links there). GitHub Pages needs a public repo or a paid plan; if you'd rather not, drag `site/` onto Netlify Drop and update `LINKS.privacy`.
 2. **Subscriptions.**
-   - App Store Connect and Google Play Console: create a yearly subscription (3-day free trial) and a monthly one.
+   - App Store Connect and Google Play Console: create a yearly and a monthly subscription, with no free trial.
    - RevenueCat: add both apps, an entitlement called `plus` with both products, and a current offering with them in the **Annual** and **Monthly** packages.
    - Put the two public SDK keys in `.env` (`EXPO_PUBLIC_REVENUECAT_IOS_KEY`, `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`).
-   - Prices, currency and the trial length on the paywall then come from the store. Without keys the paywall runs in demo mode in development, and a release build refuses to unlock.
+   - Prices, currency and the yearly saving on the paywall then come from the store. Without keys the paywall runs in demo mode in development, and a release build refuses to unlock.
    - Test real purchases with a preview build (`npx eas-cli@latest build --profile preview`) and a sandbox or test account. Expo Go only runs RevenueCat's mock mode.
-3. **Store listing.** Name, subtitle and keywords are in `docs/store-listing.md`. Support URL: the GitHub Pages address above. App Privacy (Apple) and Data safety (Google): **Purchase history**, used for app functionality, not linked to identity, not used for tracking. Nothing else is collected.
-4. **Build and submit.** `npx eas-cli@latest build --platform ios --profile production`, then `npx eas-cli@latest submit --platform ios`; the same with `--platform android`. Build numbers increase automatically (`eas.json`).
-5. **Google Play testing.** A personal Play developer account created after November 2023 must run a closed test with at least 12 testers for 14 days in a row before it can publish to production.
-6. **Check on a real iPhone and an Android phone** that the ayah-end markers (۝ with a number) render as numbered circles, that memorise mode wraps well on longer duas, and the splash and icon.
+3. **Sign-in.** There's no server: Apple or Google confirms who someone is, and their account ID becomes their RevenueCat customer, so Plus follows them to a new phone. Saved cards stay on the phone.
+   - Apple (iPhone): nothing to set up in code (`usesAppleSignIn` is on). EAS turns on the Sign in with Apple capability when it builds.
+   - Google: in Google Cloud, create an OAuth consent screen, then an **iOS** client for `com.scrollquran.app` (put its ID in `.env` as `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`) and an **Android** client for `com.scrollquran.app` with your signing SHA-1 (`npx eas-cli@latest credentials`, plus the Play App Signing SHA-1 from Play Console). Until the iOS ID is set, iPhone builds just don't show the Google button.
+   - Neither works in Expo Go or the browser. Development builds there show a "Continue as test user" button instead; release builds never do.
+   - Known gap: Apple asks apps that use Sign in with Apple to revoke the Apple token when an account is deleted, which needs a server. Delete account here erases the phone's data and unlinks the subscription, and tells people where to remove the app from their Apple ID.
+4. **Store listing.** Name, subtitle and keywords are in `docs/store-listing.md`. Support URL: the GitHub Pages address above. App Privacy (Apple) and Data safety (Google): **User ID** and **Purchase history**, used for app functionality, linked to the user, not used for tracking. Name and email stay on the phone, so they don't count as collected.
+5. **Build and submit.** `npx eas-cli@latest build --platform ios --profile production`, then `npx eas-cli@latest submit --platform ios`; the same with `--platform android`. Build numbers increase automatically (`eas.json`).
+6. **Google Play testing.** A personal Play developer account created after November 2023 must run a closed test with at least 12 testers for 14 days in a row before it can publish to production.
+7. **Check on a real iPhone and an Android phone** that the ayah-end markers (۝ with a number) render as numbered circles, that memorise mode wraps well on longer duas, and the splash and icon.
 
 Optional once you have users: crash reporting (Sentry has an Expo guide) and daily reminder notifications.

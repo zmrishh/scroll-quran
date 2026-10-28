@@ -8,9 +8,21 @@ import { Segmented } from '@/components/segmented';
 import { Bar, Ring, SectionHeader, Surface } from '@/components/ui';
 import { NAMES } from '@/data/content';
 import { moodInfo } from '@/data/moods';
-import { LINKS, openLink } from '@/lib/purchases';
+import { deleteAccount, signOut } from '@/lib/auth';
+import { confirm } from '@/lib/confirm';
+import { isDemo, LINKS, openLink, STORE } from '@/lib/purchases';
 import { openPaywall } from '@/lib/upsell';
-import { FREE_DAILY_CARDS, moodToday, useApp, type ArabicSize, type Display } from '@/store/app-store';
+import {
+  currentStreak,
+  DAILY_GOALS,
+  dailyTarget,
+  FREE_DAILY_CARDS,
+  isToday,
+  moodToday,
+  useApp,
+  type ArabicSize,
+  type Display,
+} from '@/store/app-store';
 import { colors, fonts } from '@/theme/tokens';
 
 const DISPLAY_OPTIONS: { id: Display; label: string }[] = [
@@ -25,6 +37,10 @@ const SIZE_OPTIONS: { id: ArabicSize; label: string }[] = [
   { id: 'l', label: 'Large' },
 ];
 
+const GOAL_OPTIONS = DAILY_GOALS.map((g) => ({ id: String(g), label: `${g} cards` }));
+
+const PROVIDERS = { apple: 'Apple', google: 'Google', test: 'a test account' };
+
 const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 export default function YouScreen() {
@@ -32,7 +48,16 @@ export default function YouScreen() {
   const s = useApp();
   const mood = moodToday(s);
   const namesMet = NAMES.filter((n) => s.seenNames[n.id]).length;
-  const readToday = s.activeDays.includes(dayKey(new Date())) && s.viewedToday > 0;
+  const streak = currentStreak(s);
+  const target = dailyTarget(s);
+  const viewed = isToday(s.day) ? s.viewedToday : 0;
+  const left = Math.max(0, target - viewed);
+  const cardsLeft = `${left} more card${left === 1 ? '' : 's'}`;
+  const streakNote = isToday(s.lastActiveDay)
+    ? 'Today’s goal is done. Come back tomorrow to keep it going.'
+    : streak
+      ? `${cardsLeft} today to keep your streak.`
+      : `Read ${left} card${left === 1 ? '' : 's'} today to start a streak.`;
   const week = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
@@ -58,12 +83,10 @@ export default function YouScreen() {
 
         <Surface style={styles.streak}>
           <View style={styles.streakTop}>
-            <Text style={styles.streakNumber}>{Math.max(1, s.streak)}</Text>
+            <Text style={styles.streakNumber}>{streak}</Text>
             <View style={{ flex: 1 }}>
               <Text style={styles.streakLabel}>day streak</Text>
-              <Text style={styles.streakNote}>
-                {readToday ? 'You read today. Come back tomorrow to keep it going.' : 'Read one card today to keep it going.'}
-              </Text>
+              <Text style={styles.streakNote}>{streakNote}</Text>
             </View>
           </View>
           <View style={styles.week}>
@@ -83,11 +106,14 @@ export default function YouScreen() {
 
         <View style={styles.pair}>
           <Surface style={styles.half}>
-            <Ring size={62} progress={s.premium ? 1 : s.viewedToday / FREE_DAILY_CARDS}>
-              <Text style={styles.ringValue}>{s.viewedToday}</Text>
+            <Ring size={62} progress={Math.min(1, viewed / target)}>
+              <Text style={styles.ringValue}>{viewed}</Text>
             </Ring>
             <Text style={styles.halfLabel}>cards today</Text>
-            <Text style={styles.halfNote}>{s.premium ? 'No daily limit' : `of ${FREE_DAILY_CARDS} free`}</Text>
+            <Text style={styles.halfNote}>
+              {`Goal ${target}`}
+              {!s.premium && s.dailyGoal > FREE_DAILY_CARDS ? ` (${s.dailyGoal} with Plus)` : ''}
+            </Text>
           </Surface>
           <Surface style={styles.half}>
             <Text style={styles.halfLabel}>Your heart today</Text>
@@ -133,6 +159,10 @@ export default function YouScreen() {
         <SectionHeader title="Reading" />
         <Surface style={styles.group}>
           <View style={styles.setting}>
+            <Text style={styles.settingLabel}>Daily goal</Text>
+            <Segmented value={String(s.dailyGoal)} options={GOAL_OPTIONS} onChange={(g) => s.set({ dailyGoal: Number(g) })} />
+          </View>
+          <View style={[styles.setting, styles.divider]}>
             <Text style={styles.settingLabel}>Show</Text>
             <Segmented value={s.display} options={DISPLAY_OPTIONS} onChange={(display) => s.set({ display })} />
           </View>
@@ -165,17 +195,56 @@ export default function YouScreen() {
               router.replace('/onboarding');
             }}
           />
-          {s.premium && <Row label="Turn off Plus (demo)" divider onPress={() => s.set({ premium: false })} />}
+          {isDemo && s.premium && <Row label="Turn off Plus (demo)" divider onPress={() => s.set({ premium: false })} />}
         </Surface>
+
+        {s.account && (
+          <>
+            <SectionHeader title="Account" />
+            <Surface style={styles.group}>
+              <View style={styles.account}>
+                <Text style={styles.accountName}>{s.account.name ?? s.account.email ?? 'Signed in'}</Text>
+                <Text style={styles.accountNote}>
+                  {`Signed in with ${PROVIDERS[s.account.provider]}`}
+                  {s.account.name && s.account.email ? ` · ${s.account.email}` : ''}
+                </Text>
+              </View>
+              <Row
+                label="Sign out"
+                divider
+                onPress={() =>
+                  confirm('Sign out?', 'Your saved cards and reflections stay on this phone.', 'Sign out', () => {
+                    signOut();
+                  })
+                }
+              />
+              <Row
+                label="Delete account"
+                divider
+                danger
+                onPress={() =>
+                  confirm(
+                    'Delete your account?',
+                    `This erases your saved cards, reflections and streak on this phone and unlinks your subscription. It doesn’t cancel Plus: do that in your ${STORE} settings.`,
+                    'Delete',
+                    () => {
+                      deleteAccount();
+                    },
+                  )
+                }
+              />
+            </Surface>
+          </>
+        )}
       </ScrollView>
     </View>
   );
 }
 
-function Row({ label, onPress, divider }: { label: string; onPress: () => void; divider?: boolean }) {
+function Row({ label, onPress, divider, danger }: { label: string; onPress: () => void; divider?: boolean; danger?: boolean }) {
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.row, divider && styles.divider, pressed && { opacity: 0.6 }]}>
-      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={[styles.rowLabel, danger && { color: colors.wrong }]}>{label}</Text>
       <Icon name="chevron-right" size={18} color={colors.faint} />
     </Pressable>
   );
@@ -223,4 +292,7 @@ const styles = StyleSheet.create({
   switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 },
   row: { flexDirection: 'row', alignItems: 'center', height: 52 },
   rowLabel: { flex: 1, fontFamily: fonts.uiMedium, fontSize: 15.5, color: colors.text },
+  account: { paddingVertical: 14 },
+  accountName: { fontFamily: fonts.uiMedium, fontSize: 16, color: colors.text },
+  accountNote: { fontFamily: fonts.ui, fontSize: 13, color: colors.quiet, marginTop: 2 },
 });
