@@ -72,7 +72,7 @@ function TopicSheet({ open, topic, locked, onClose, onPick }: SheetProps) {
     <Modal visible={open} transparent statusBarTranslucent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Close" />
       <View style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]}>
-        <Text style={styles.sheetTitle}>{locked ? 'Show me · topic feeds are part of Plus' : 'Show me'}</Text>
+        <Text style={styles.sheetTitle}>Show me</Text>
         {rows.map((r) => {
           const on = r.id === topic;
           return (

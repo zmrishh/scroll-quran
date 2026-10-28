@@ -12,7 +12,7 @@ import { cardStyle } from '@/data/styles';
 import { moodInfo } from '@/data/moods';
 import { deleteAccount, signOut } from '@/lib/auth';
 import { confirm } from '@/lib/confirm';
-import { isDemo, LINKS, openLink, STORE } from '@/lib/purchases';
+import { isDemo, STORE } from '@/lib/purchases';
 import { openPaywall } from '@/lib/upsell';
 import {
   currentStreak,
@@ -187,7 +187,8 @@ export default function YouScreen() {
         <SectionHeader title="About" />
         <Surface style={styles.group}>
           <Row label="Sources and licences" onPress={() => router.push('/about')} />
-          <Row label="Privacy policy" divider onPress={() => openLink(LINKS.privacy)} />
+          <Row label="Privacy" divider onPress={() => router.push('/privacy')} />
+          <Row label="Terms of use" divider onPress={() => router.push('/terms')} />
           <Row
             label="Replay the intro"
             divider

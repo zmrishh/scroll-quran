@@ -1,4 +1,4 @@
-import { Alert, Linking, Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import Purchases, {
   PRODUCT_CATEGORY,
   PURCHASES_ERROR_CODE,
@@ -57,17 +57,6 @@ export const useStylePrices = create<Record<string, string>>(() =>
 
 let packages: Partial<Record<Plan, PurchasesPackage>> = {};
 let styleProducts: Record<string, PurchasesStoreProduct> = {};
-
-/**
- * Required on subscription paywalls (App Store guideline 3.1.2). Apple's standard licence works
- * as the terms. The privacy page is site/privacy.html, published to GitHub Pages by .github/workflows/website.yml.
- */
-export const LINKS = {
-  terms: 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
-  privacy: 'https://zmrishh.github.io/scroll-quran/privacy.html',
-};
-
-export const openLink = (url: string) => Linking.openURL(url).catch(() => {});
 
 const isActive = (info: CustomerInfo) => ENTITLEMENT in info.entitlements.active;
 

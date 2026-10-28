@@ -1,9 +1,10 @@
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { topicLabel, type Topic } from '@/data/content';
 import { haptic } from '@/lib/feedback';
-import { isDemo, LINKS, loadPlans, openLink, purchase, restorePurchases, STORE, usePlans, type Plan } from '@/lib/purchases';
+import { isDemo, loadPlans, purchase, restorePurchases, STORE, usePlans, type Plan } from '@/lib/purchases';
 import type { PaywallReason } from '@/lib/upsell';
 import { FREE_DAILY_CARDS, FREE_SAVES, useApp } from '@/store/app-store';
 import { colors, fonts } from '@/theme/tokens';
@@ -139,10 +140,10 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
           }}>
           <Text style={styles.link}>Restore purchases</Text>
         </Pressable>
-        <Pressable hitSlop={8} onPress={() => openLink(LINKS.terms)}>
+        <Pressable hitSlop={8} onPress={() => router.push('/terms')}>
           <Text style={styles.link}>Terms</Text>
         </Pressable>
-        <Pressable hitSlop={8} onPress={() => openLink(LINKS.privacy)}>
+        <Pressable hitSlop={8} onPress={() => router.push('/privacy')}>
           <Text style={styles.link}>Privacy</Text>
         </Pressable>
       </View>

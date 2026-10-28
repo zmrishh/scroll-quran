@@ -42,7 +42,8 @@
       ],
       "expo-sharing",
       "expo-apple-authentication",
-      "expo-image"
+      "expo-image",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

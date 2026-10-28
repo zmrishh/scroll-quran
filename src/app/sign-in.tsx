@@ -11,7 +11,6 @@ import { ArtPanel } from '@/components/art';
 import { PrimaryButton } from '@/components/primary-button';
 import { availableProviders, signInForTesting, signInWithApple, signInWithGoogle, type Providers } from '@/lib/auth';
 import { haptic } from '@/lib/feedback';
-import { LINKS, openLink } from '@/lib/purchases';
 import type { Account } from '@/store/app-store';
 import { colors, fonts } from '@/theme/tokens';
 
@@ -64,11 +63,11 @@ export default function SignIn() {
 
           <Text style={styles.legal}>
             By continuing you agree to the{' '}
-            <Text style={styles.legalLink} onPress={() => openLink(LINKS.terms)}>
+            <Text style={styles.legalLink} onPress={() => router.push('/terms')}>
               Terms of Use
             </Text>{' '}
             and{' '}
-            <Text style={styles.legalLink} onPress={() => openLink(LINKS.privacy)}>
+            <Text style={styles.legalLink} onPress={() => router.push('/privacy')}>
               Privacy Policy
             </Text>
             .

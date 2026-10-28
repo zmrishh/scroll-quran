@@ -79,6 +79,8 @@ export default function RootLayout() {
           <Stack.Screen name="paywall" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
           <Stack.Screen name="card/[key]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
           <Stack.Screen name="about" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="privacy" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="terms" options={{ presentation: 'modal' }} />
           <Stack.Screen name="styles" options={{ presentation: 'modal' }} />
           <Stack.Screen name="surah/[n]" />
         </Stack>

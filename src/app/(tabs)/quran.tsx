@@ -38,7 +38,6 @@ export default function QuranScreen() {
         ListHeaderComponent={
           <View style={styles.header}>
             <Text style={styles.title}>Quran</Text>
-            <Text style={styles.summary}>114 surahs · 6,236 ayat · Arabic and English</Text>
 
             {lastRead && (
               <Pressable onPress={() => openSurah(lastRead.surah, lastRead.ayah)}>
@@ -101,7 +100,6 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingBottom: 30, maxWidth: 600, width: '100%', alignSelf: 'center' },
   header: { marginBottom: 8, paddingHorizontal: 8 },
   title: { fontFamily: fonts.read, fontSize: 32, color: colors.text },
-  summary: { fontFamily: fonts.ui, fontSize: 14, color: colors.quiet, marginTop: 4 },
   continue: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 18 },
   continueLabel: { fontFamily: fonts.ui, fontSize: 12.5, color: colors.gold },
   continueName: { fontFamily: fonts.uiMedium, fontSize: 16, color: colors.text, marginTop: 2 },
