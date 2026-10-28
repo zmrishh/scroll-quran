@@ -15,7 +15,6 @@ export function CheckInCard({ onPick }: { onPick?: (mood: Mood) => void }) {
   return (
     <>
       <Text style={styles.title}>How is your heart today?</Text>
-      <Text style={styles.sub}>Pick one. The next verses will meet you there.</Text>
       <View style={styles.list}>
         {MOODS.map((m) => {
           const on = m.id === chosen;
@@ -46,7 +45,6 @@ export function CheckInCard({ onPick }: { onPick?: (mood: Mood) => void }) {
 
 const styles = StyleSheet.create({
   title: { fontFamily: fonts.read, fontSize: 28, lineHeight: 36, color: colors.text },
-  sub: { fontFamily: fonts.read, fontSize: 17, lineHeight: 25, color: colors.read, marginTop: 8 },
   list: { marginTop: 22 },
   row: {
     flexDirection: 'row',

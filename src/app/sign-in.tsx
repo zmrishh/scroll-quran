@@ -47,11 +47,6 @@ export default function SignIn() {
         <Animated.View entering={FadeInDown.delay(200).duration(500)}>
           <Text style={styles.brand}>Scroll Quran</Text>
           <Text style={styles.h1}>{fromOnboarding ? 'Save your plan' : 'Welcome back'}</Text>
-          <Text style={styles.sub}>
-            {fromOnboarding
-              ? 'So Plus follows you to any phone.'
-              : 'Pick up where you left off.'}
-          </Text>
 
           <View style={[styles.buttons, busy && { opacity: 0.6 }]} pointerEvents={busy ? 'none' : 'auto'}>
             {providers?.apple && (
@@ -110,7 +105,6 @@ const styles = StyleSheet.create({
   inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 28, maxWidth: 520, width: '100%', alignSelf: 'center' },
   brand: { fontFamily: fonts.uiMedium, fontSize: 13, letterSpacing: 1.2, color: colors.gold, textTransform: 'uppercase' },
   h1: { fontFamily: fonts.read, fontSize: 32, lineHeight: 40, color: colors.text, marginTop: 8 },
-  sub: { fontFamily: fonts.ui, fontSize: 15, lineHeight: 22, color: colors.quiet, marginTop: 6 },
   buttons: { gap: 12, marginTop: 22 },
   apple: { width: '100%', height: 54 },
   google: {

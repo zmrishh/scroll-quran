@@ -121,7 +121,6 @@ export default function YouScreen() {
           <Surface style={styles.half}>
             <Text style={styles.halfLabel}>Your heart today</Text>
             <Text style={[styles.mood, !mood && { color: colors.faint }]}>{(mood && moodInfo(mood)?.label) ?? 'Not asked yet'}</Text>
-            <Text style={styles.halfNote}>{mood ? 'The feed leans this way today' : 'Answer at the top of your feed'}</Text>
           </Surface>
         </View>
 
@@ -148,7 +147,6 @@ export default function YouScreen() {
               );
             })}
           </View>
-          <Text style={styles.namesNote}>New Names appear as you scroll. Each one you meet is filled in here.</Text>
         </Surface>
 
         {!s.premium && (
@@ -217,7 +215,7 @@ export default function YouScreen() {
                 label="Sign out"
                 divider
                 onPress={() =>
-                  confirm('Sign out?', 'Your saved cards and reflections stay on this phone.', 'Sign out', () => {
+                  confirm('Sign out?', '', 'Sign out', () => {
                     signOut();
                   })
                 }
@@ -229,7 +227,7 @@ export default function YouScreen() {
                 onPress={() =>
                   confirm(
                     'Delete your account?',
-                    `This erases your saved cards, reflections and streak on this phone and unlinks your subscription. It doesn’t cancel Plus: do that in your ${STORE} settings.`,
+                    `This erases your saved cards, reflections and streak. It doesn’t cancel Plus; do that in your ${STORE} settings.`,
                     'Delete',
                     () => {
                       deleteAccount();
@@ -288,7 +286,6 @@ const styles = StyleSheet.create({
   nameMet: { backgroundColor: colors.goldSoft },
   nameText: { fontFamily: fonts.arabic, fontSize: 14, lineHeight: 28, color: colors.gold },
   nameDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.line },
-  namesNote: { fontFamily: fonts.ui, fontSize: 12.5, lineHeight: 18, color: colors.quiet, marginTop: 14 },
   plus: { marginTop: 30 },
   plusTitle: { fontFamily: fonts.read, fontSize: 22, color: colors.text },
   plusBody: { fontFamily: fonts.ui, fontSize: 14.5, lineHeight: 21, color: colors.read, marginTop: 4 },

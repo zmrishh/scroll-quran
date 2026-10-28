@@ -113,7 +113,7 @@ function Empty() {
       </View>
       <Text style={styles.emptyTitle}>Keep the verses that stay with you</Text>
       <Text style={styles.emptyBody}>
-        Tap the bookmark on any card to save it here, or the pen to write a private reflection on it.
+        Tap the bookmark on any card to save it here, or the pen to write a reflection on it.
       </Text>
       <PrimaryButton label="Go to the feed" tone="quiet" onPress={() => router.navigate('/')} style={{ marginTop: 20 }} />
     </Surface>

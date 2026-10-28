@@ -49,7 +49,6 @@ function Sheet({ noteKey, source, onClose }: Omit<Props, 'open'>) {
           selectionColor={colors.gold}
         />
         <View style={styles.row}>
-          <Text style={styles.private}>Only on this phone</Text>
           <View style={styles.buttons}>
             {existing ? (
               <Pressable hitSlop={8} onPress={() => setText('')}>
@@ -86,8 +85,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     padding: 0,
   },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 },
-  private: { fontFamily: fonts.ui, fontSize: 12.5, color: colors.faint },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 16 },
   buttons: { flexDirection: 'row', alignItems: 'center', gap: 18 },
   secondary: { fontFamily: fonts.uiMedium, fontSize: 15, color: colors.quiet },
   save: { backgroundColor: colors.gold, borderRadius: 12, paddingHorizontal: 18, height: 40, justifyContent: 'center' },

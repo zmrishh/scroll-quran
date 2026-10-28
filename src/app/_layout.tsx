@@ -14,7 +14,7 @@ import { setupPurchases } from '@/lib/purchases';
 import { useApp } from '@/store/app-store';
 import { colors } from '@/theme/tokens';
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const theme = {
   ...DarkTheme,
@@ -29,9 +29,6 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.page, justifyContent: 'center', paddingHorizontal: 28 }}>
       <Text style={{ fontSize: 22, color: colors.text, fontWeight: '500' }}>Something went wrong.</Text>
-      <Text style={{ fontSize: 15, lineHeight: 22, color: colors.read, marginTop: 8 }}>
-        Your saved cards and reflections are safe on this phone.
-      </Text>
       <Pressable
         onPress={retry}
         style={{ marginTop: 24, height: 50, borderRadius: 14, backgroundColor: colors.gold, alignItems: 'center', justifyContent: 'center' }}>
@@ -62,7 +59,7 @@ export default function RootLayout() {
   const ready = (fontsLoaded || !!fontError) && hydrated;
 
   useEffect(() => {
-    if (ready) SplashScreen.hideAsync();
+    if (ready) SplashScreen.hideAsync().catch(() => {});
   }, [ready]);
 
   // After hydration, so the subscription status from the store isn't overwritten by the saved one.

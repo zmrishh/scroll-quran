@@ -53,7 +53,7 @@ export default function About() {
 
         <Block title="No AI">
           Nothing in Scroll Quran is generated. The feed follows simple rules based on what you like, save and spend time
-          on, and that information stays on your phone.
+          on.
         </Block>
       </ScrollView>
     </View>

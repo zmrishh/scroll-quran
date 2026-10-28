@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 
 import type { Topic } from '@/data/content';
 import type { CardStyleId } from '@/data/styles';
@@ -99,6 +99,16 @@ const yesterday = () => {
   const d = new Date();
   d.setDate(d.getDate() - 1);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+/**
+ * AsyncStorage that never throws. A write can fail when the phone is out of space; the app then carries on
+ * with the state in memory and the next change tries to save again, instead of raising an uncaught error.
+ */
+const storage: StateStorage = {
+  getItem: (name) => AsyncStorage.getItem(name).catch(() => null),
+  setItem: (name, value) => AsyncStorage.setItem(name, value).catch(() => {}),
+  removeItem: (name) => AsyncStorage.removeItem(name).catch(() => {}),
 };
 
 const initial: State = {
@@ -254,7 +264,7 @@ export const useApp = create<State & Actions>()(
     {
       name: 'scroll-quran',
       version: 2,
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => storage),
       // Saved state from older versions lacks newer totals; fill them from the defaults.
       merge: (persisted, current) => {
         const p = persisted as Partial<State> | undefined;
