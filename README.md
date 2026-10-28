@@ -1,56 +1,52 @@
-# Welcome to your Expo app 👋
+# Scroll Quran
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A short-form, vertical-scroll feed of Quran ayat, Quranic duas, Names of Allah, dhikr and quick quizzes, plus the complete Quran (114 surahs, Arabic and English) to read offline. Built with Expo (SDK 58) and Expo Router. No backend, no AI: everything runs on the phone.
 
-## Get started
+- `docs/visual-elements.md` describes the Night design and the reading aids on the cards.
+- `docs/store-listing.md` has the App Store and Google Play name, subtitle and keywords.
 
-1. Install dependencies
+## Run it on your iPhone
+
+1. Install **Expo Go** from the App Store.
+2. In this folder:
 
    ```bash
    npm install
-   ```
-
-2. Start the app
-
-   ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+3. Scan the QR code with the iPhone camera. Keep the phone and PC on the same Wi-Fi, or use `npx expo start --tunnel`.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Home-screen widgets, Screen Time and real in-app purchases need a development build (`npx eas-cli@latest build --profile development`), not Expo Go.
 
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Project layout
 
-## Get a fresh project
+| Path | What it is |
+|---|---|
+| `src/app/` | Screens (Expo Router): feed, Quran (surah list), saved, you, surah reader, onboarding, paywall, card viewer, about |
+| `src/components/` | Card frame, the card types, reading pieces (`reading.tsx`), header with topic picker, tab bar |
+| `src/feed/` | Feed generator (card rhythm, topic weighting) and the free daily limit |
+| `src/store/app-store.ts` | Persisted state: likes, saves, streak, settings, plan |
+| `src/data/` | `quran.json` (feed content) and `quran-full.json` (all 6,236 ayat, loaded when the reader first opens), both generated, plus Names of Allah and dhikr |
+| `scripts/build-content.mjs` | Builds both JSON files from the Tanzil files: passages, duas, key lines, speakers, surah facts, the full text |
+| `scripts/more-content.mjs` | The second batch of feed passages and duas, with their key lines |
 
-When you're ready, run:
+## Content
 
-```bash
-npm run reset-project
-```
+- To add or remove passages and duas, edit the lists in `scripts/build-content.mjs` or `scripts/more-content.mjs`, then run `npm run build:content`. A passage longer than about two lines needs a hand-picked key line, and the build fails if it isn't word for word in the translation.
+- Arabic: [Tanzil](https://tanzil.net) Quran Text (Uthmani 1.1), CC BY 3.0, used verbatim with attribution.
+- English: M. M. Pickthall (1930), public domain.
+- Every Name of Allah reference was checked against the Arabic text.
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+## Before launch
 
-### Other setup steps
+Things only you can do, roughly in order:
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+1. **App icon and splash.** `assets/images/icon.png`, `assets/expo.icon` (iOS) and `assets/images/splash-icon.png` are still Expo's placeholders. Use a 1024×1024 icon with no transparency.
+2. **Privacy policy page.** Host one (it can be short: the app collects no data; everything stays on the phone) and put its address in `LINKS.privacy` in `src/lib/purchases.ts`. Apple rejects subscription apps without it.
+3. **Subscriptions.** Create the yearly (3-day trial) and monthly products in App Store Connect, connect them in RevenueCat, then replace the bodies of `purchase` and `restorePurchases` in `src/lib/purchases.ts`. That needs a development build (`npx expo install expo-dev-client react-native-purchases`, then `npx eas-cli@latest build --profile preview`), because Expo Go can't run in-app purchases.
+4. **Store listing.** Name, subtitle and keywords are in `docs/store-listing.md`. The App Privacy answer is "Data Not Collected".
+5. **Build and submit.** `npx eas-cli@latest build --platform ios --profile production`, then `npx eas-cli@latest submit --platform ios`. Build numbers increase automatically (`eas.json`).
+6. **Check on a real iPhone** that the ayah-end markers (۝ with a number) render as numbered circles, and that memorise mode wraps well on longer duas.
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Optional once you have users: crash reporting (Sentry has an Expo guide) and daily reminder notifications.
