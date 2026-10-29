@@ -238,7 +238,7 @@ function LifetimeCard({ info, yearly, on, compact, onPress }: LifetimeProps) {
         <Text style={styles.lifetimePrice}>{info.short || '…'}</Text>
         <Text style={styles.once}>one payment</Text>
       </View>
-      {months && <Text style={styles.payback}>Pays for itself in {months} months</Text>}
+      {!!months && <Text style={styles.payback}>Pays for itself in {months} months</Text>}
       {!compact && (
         <View style={styles.promises}>
           {LIFETIME_PROMISES.map((p) => (
