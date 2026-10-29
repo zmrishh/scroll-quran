@@ -19,6 +19,7 @@ export type Colors = {
   wrong: string;
   /** The page and text colours as "r,g,b", for fades and washes: `rgba(${c.pageRgb},0.8)`. */
   pageRgb: string;
+  raisedRgb: string;
   textRgb: string;
 };
 
@@ -42,6 +43,7 @@ const night: Colors = {
   right: '#4FAE85',
   wrong: '#CF6B60',
   pageRgb: '12,21,18',
+  raisedRgb: '20,32,27',
   textRgb: '243,235,216',
 };
 
@@ -64,6 +66,7 @@ const parchment: Colors = {
   right: '#2A7E58',
   wrong: '#AE4237',
   pageRgb: '246,241,230',
+  raisedRgb: '253,250,243',
   textRgb: '24,34,29',
 };
 

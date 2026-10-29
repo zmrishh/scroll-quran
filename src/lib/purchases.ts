@@ -13,8 +13,11 @@ import { ALL_STYLES_PRODUCT, STYLE_PRODUCTS } from '@/data/styles';
 import { useApp, type Account } from '@/store/app-store';
 
 export type Plan = 'yearly' | 'monthly' | 'lifetime';
-/** badge: the yearly plan's saving against paying monthly, worked out from the store prices. */
-export type PlanInfo = { title: string; price: string; note: string; badge: string | null };
+/**
+ * price: the full line ("$29.99 a year"); short: the bare price ("$29.99"); amount: the number, for comparing plans.
+ * badge: the yearly plan's saving against paying monthly, worked out from the store prices.
+ */
+export type PlanInfo = { title: string; price: string; short: string; amount: number | null; note: string; badge: string | null };
 
 /**
  * RevenueCat setup this code expects: an entitlement with this identifier, with the yearly, monthly and
@@ -35,15 +38,15 @@ export const STORE = Platform.OS === 'android' ? 'Google Play' : 'App Store';
 const STORE_ACCOUNT = Platform.OS === 'android' ? 'Google account' : 'Apple ID';
 
 const DEMO_PLANS: Record<Plan, PlanInfo | null> = {
-  yearly: { title: 'Yearly', price: '$29.99 a year', note: '$2.50 a month, billed yearly', badge: 'Save 50%' },
-  monthly: { title: 'Monthly', price: '$4.99 a month', note: 'Cancel any time', badge: null },
-  lifetime: { title: 'Lifetime', price: '$49.99 once', note: 'Pay once, keep Plus for good', badge: null },
+  yearly: { title: 'Yearly', price: '$29.99 a year', short: '$29.99', amount: 29.99, note: '$2.50 a month, billed yearly', badge: 'Save 50%' },
+  monthly: { title: 'Monthly', price: '$4.99 a month', short: '$4.99', amount: 4.99, note: 'Cancel any time', badge: null },
+  lifetime: { title: 'Lifetime', price: '$49.99 once', short: '$49.99', amount: 49.99, note: 'Pay once, keep Plus for good', badge: null },
 };
 
 // With RevenueCat, prices stay blank until the store returns them in the user's own currency.
 const LOADING_PLANS: Record<Plan, PlanInfo | null> = {
-  yearly: { title: 'Yearly', price: '', note: '', badge: null },
-  monthly: { title: 'Monthly', price: '', note: '', badge: null },
+  yearly: { title: 'Yearly', price: '', short: '', amount: null, note: '', badge: null },
+  monthly: { title: 'Monthly', price: '', short: '', amount: null, note: '', badge: null },
   lifetime: null,
 };
 
@@ -113,12 +116,21 @@ export async function loadPlans() {
       yearly: {
         title: 'Yearly',
         price: `${year.priceString} a year`,
+        short: year.priceString,
+        amount: year.price,
         note: year.pricePerMonthString ? `${year.pricePerMonthString} a month, billed yearly` : 'Billed yearly',
         badge: saving >= 5 ? `Save ${saving}%` : null,
       },
-      monthly: { title: 'Monthly', price: `${month.priceString} a month`, note: 'Cancel any time', badge: null },
+      monthly: { title: 'Monthly', price: `${month.priceString} a month`, short: month.priceString, amount: month.price, note: 'Cancel any time', badge: null },
       lifetime: offering.lifetime
-        ? { title: 'Lifetime', price: `${offering.lifetime.product.priceString} once`, note: 'Pay once, keep Plus for good', badge: null }
+        ? {
+            title: 'Lifetime',
+            price: `${offering.lifetime.product.priceString} once`,
+            short: offering.lifetime.product.priceString,
+            amount: offering.lifetime.product.price,
+            note: 'Pay once, keep Plus for good',
+            badge: null,
+          }
         : null,
     });
   } catch {}
