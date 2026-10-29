@@ -162,9 +162,13 @@ export default function YouScreen() {
           <Surface accent style={styles.plus}>
             <View style={styles.plusHead}>
               <Text style={styles.plusTitle}>Scroll Quran Plus</Text>
-              <Text style={styles.plusBadge}>Active</Text>
+              <Text style={styles.plusBadge}>{s.lifetime ? 'Lifetime' : 'Active'}</Text>
             </View>
-            <Text style={styles.plusBody}>No daily limit, every topic feed, unlimited saves and clean shares.</Text>
+            <Text style={styles.plusBody}>
+              {s.lifetime
+                ? 'No daily limit, every topic feed, unlimited saves, clean shares and every card style.'
+                : 'No daily limit, every topic feed, unlimited saves and clean shares.'}
+            </Text>
           </Surface>
         ) : (
           <Surface accent style={styles.plus}>
@@ -219,7 +223,7 @@ export default function YouScreen() {
               router.replace('/onboarding');
             }}
           />
-          {isDemo && s.premium && <Row label="Turn off Plus (demo)" divider onPress={() => s.set({ premium: false })} />}
+          {isDemo && s.premium && <Row label="Turn off Plus (demo)" divider onPress={() => s.set({ premium: false, lifetime: false })} />}
           {__DEV__ && !s.premium && s.viewedToday > 0 && (
             <Row label="Reset today’s free cards (development)" divider onPress={() => useApp.setState({ viewedToday: 0 })} />
           )}

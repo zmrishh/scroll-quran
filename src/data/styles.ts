@@ -35,5 +35,8 @@ export const STYLE_PRODUCTS = [...CARD_STYLES.flatMap((s) => (s.product ? [s.pro
 
 export const cardStyle = (id: string) => CARD_STYLES.find((s) => s.id === id) ?? CARD_STYLES[0];
 
-export const ownsStyle = (style: CardStyle, owned: readonly string[]) =>
-  !style.product || owned.includes(style.product) || owned.includes(ALL_STYLES_PRODUCT);
+/** Owned when it's free, bought on its own or in the bundle, or included with Lifetime. */
+export const ownsStyle = (style: CardStyle, owned: readonly string[], lifetime: boolean) =>
+  lifetime || !style.product || owned.includes(style.product) || owned.includes(ALL_STYLES_PRODUCT);
+
+export const PAID_STYLES = CARD_STYLES.filter((s) => s.product);

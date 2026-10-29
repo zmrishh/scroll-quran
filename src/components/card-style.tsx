@@ -92,7 +92,7 @@ function GlowLayer({ seed }: { seed: string }) {
 
 /** The style the cards should use: the chosen one if it's owned, otherwise Glow. */
 export function useCardStyle(): CardStyleId {
-  return useApp((s) => (ownsStyle(cardStyle(s.cardStyle), s.ownedStyles) ? s.cardStyle : 'glow'));
+  return useApp((s) => (ownsStyle(cardStyle(s.cardStyle), s.ownedStyles, s.lifetime) ? s.cardStyle : 'glow'));
 }
 
 const useStyles = makeStyles((colors) => ({

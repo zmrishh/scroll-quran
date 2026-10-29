@@ -6,15 +6,15 @@ import { CardStyleLayer, useCardStyle } from '@/components/card-style';
 import { Icon } from '@/components/icon';
 import { CloseButton } from '@/components/ui';
 import { PASSAGES } from '@/data/content';
-import { ALL_STYLES_PRODUCT, CARD_STYLES, ownsStyle, type CardStyle } from '@/data/styles';
+import { ALL_STYLES_PRODUCT, CARD_STYLES, ownsStyle, PAID_STYLES as PAID, type CardStyle } from '@/data/styles';
 import { haptic } from '@/lib/feedback';
 import { buyStyle, isDemo, loadStylePrices, restorePurchases, useStylePrices } from '@/lib/purchases';
+import { openPaywall } from '@/lib/upsell';
 import { useApp } from '@/store/app-store';
 import { makeStyles, useColors } from '@/theme/theme';
 import { fonts, layout } from '@/theme/tokens';
 
 const SAMPLE = PASSAGES.find((p) => p.id === '94:5-6')!.ayat[0];
-const PAID = CARD_STYLES.filter((s) => s.product);
 const TILE_HEIGHT = 230;
 
 export default function Styles() {
@@ -23,9 +23,10 @@ export default function Styles() {
   const insets = useSafeAreaInsets();
   const inUse = useCardStyle();
   const owned = useApp((s) => s.ownedStyles);
+  const lifetime = useApp((s) => s.lifetime);
   const prices = useStylePrices();
   const [busy, setBusy] = useState(false);
-  const allOwned = PAID.every((s) => ownsStyle(s, owned));
+  const allOwned = PAID.every((s) => ownsStyle(s, owned, lifetime));
 
   useEffect(() => {
     loadStylePrices();
@@ -41,7 +42,7 @@ export default function Styles() {
   };
 
   const choose = async (s: CardStyle) => {
-    if (ownsStyle(s, owned) || (await buy(s.product!))) {
+    if (ownsStyle(s, owned, lifetime) || (await buy(s.product!))) {
       haptic.tap();
       useApp.getState().set({ cardStyle: s.id });
     }
@@ -70,10 +71,17 @@ export default function Styles() {
             <Text style={styles.bundlePrice}>{prices[ALL_STYLES_PRODUCT] ?? ''}</Text>
           </Pressable>
         )}
+        {!allOwned && (
+          <Pressable hitSlop={8} onPress={() => openPaywall('styles')} style={styles.lifetime} accessibilityRole="button">
+            <Text style={styles.lifetimeText}>Included with Lifetime Plus</Text>
+            <Icon name="chevron-right" size={15} color={colors.gold} strokeWidth={2.2} />
+          </Pressable>
+        )}
+        {lifetime && <Text style={styles.included}>Every style is included with your Lifetime Plus.</Text>}
 
         <View style={styles.grid}>
           {CARD_STYLES.map((s) => {
-            const has = ownsStyle(s, owned);
+            const has = ownsStyle(s, owned, lifetime);
             const active = inUse === s.id;
             return (
               <Pressable
@@ -131,6 +139,9 @@ const useStyles = makeStyles((colors) => ({
   bundleTitle: { fontFamily: fonts.uiMedium, fontSize: 16, color: colors.text },
   bundleNote: { fontFamily: fonts.ui, fontSize: 13, color: colors.read, marginTop: 2 },
   bundlePrice: { fontFamily: fonts.uiMedium, fontSize: 16, color: colors.gold },
+  lifetime: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', gap: 2, marginTop: 14, paddingVertical: 2 },
+  lifetimeText: { fontFamily: fonts.uiMedium, fontSize: 14, color: colors.gold },
+  included: { fontFamily: fonts.uiMedium, fontSize: 14, color: colors.gold, marginTop: 14 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 20 },
   tile: { width: '48%', flexGrow: 1 },
   preview: {

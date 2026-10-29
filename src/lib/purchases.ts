@@ -62,11 +62,13 @@ let packages: Partial<Record<Plan, PurchasesPackage>> = {};
 let styleProducts: Record<string, PurchasesStoreProduct> = {};
 
 const isActive = (info: CustomerInfo) => ENTITLEMENT in info.entitlements.active;
+// Plus that never expires is Lifetime, whichever product granted it, so it needs nothing extra set up in RevenueCat.
+const isLifetime = (info: CustomerInfo) => info.entitlements.active[ENTITLEMENT]?.expirationDate === null;
 
 /** RevenueCat is the source of truth: an expired or refunded purchase turns Plus or a style off. */
 function applyCustomerInfo(info: CustomerInfo) {
   const ownedStyles = info.nonSubscriptionTransactions.map((t) => t.productIdentifier).filter((id) => STYLE_PRODUCTS.includes(id));
-  useApp.getState().set({ premium: isActive(info), ownedStyles });
+  useApp.getState().set({ premium: isActive(info), lifetime: isLifetime(info), ownedStyles });
 }
 
 /** The RevenueCat customer for an account. Only this opaque ID leaves the phone, never the name or email. */
@@ -164,7 +166,7 @@ function demoAllowed() {
 export async function purchase(plan: Plan): Promise<boolean> {
   if (isDemo) {
     if (!demoAllowed()) return false;
-    useApp.getState().set({ premium: true });
+    useApp.getState().set({ premium: true, lifetime: plan === 'lifetime' || useApp.getState().lifetime });
     return true;
   }
   await loadPlans();

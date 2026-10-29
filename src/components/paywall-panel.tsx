@@ -7,6 +7,7 @@ import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepe
 
 import { ART } from '@/data/art';
 import { topicLabel, type Topic } from '@/data/content';
+import { PAID_STYLES } from '@/data/styles';
 import { haptic } from '@/lib/feedback';
 import { isDemo, loadPlans, purchase, restorePurchases, STORE, usePlans, type Plan, type PlanInfo } from '@/lib/purchases';
 import type { PaywallReason } from '@/lib/upsell';
@@ -27,6 +28,11 @@ function copyFor(reason: PaywallReason, topic: Topic | undefined, picked: string
       return { title: `That’s your ${FREE_DAILY_CARDS} for today.`, body: 'Plus has no daily limit, so you can keep reading now.' };
     case 'saves':
       return { title: `Your ${FREE_SAVES} free saves are used.`, body: 'With Plus you can keep every card you want to come back to.' };
+    case 'styles':
+      return {
+        title: `All ${PAID_STYLES.length} styles come with Lifetime.`,
+        body: 'One payment for Plus and every card style, yours for good.',
+      };
     case 'topic':
       return {
         title: `The ${topic ? topicLabel(topic) : 'topic'} feed is part of Plus.`,
@@ -176,7 +182,7 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
   );
 }
 
-const LIFETIME_PROMISES = ['Every Plus feature, for good', 'Nothing renews, nothing to cancel', 'Comes back on a new phone'];
+const LIFETIME_PROMISES = ['Every Plus feature, for good', `All ${PAID_STYLES.length} manuscript card styles`, 'Nothing renews, nothing to cancel'];
 
 type LifetimeProps = { info: PlanInfo; yearly: PlanInfo | null; on: boolean; compact?: boolean; onPress: () => void };
 

@@ -38,6 +38,8 @@ type State = {
   arabicSize: ArabicSize;
   haptics: boolean;
   premium: boolean;
+  /** Plus bought once, for good. Lifetime also owns every card style. */
+  lifetime: boolean;
   day: string;
   viewedToday: number;
   /** Cards a day that complete a streak day. Free users' goal is capped at the free limit. */
@@ -100,6 +102,7 @@ type Actions = {
         | 'arabicSize'
         | 'haptics'
         | 'premium'
+        | 'lifetime'
         | 'hintSeen'
         | 'dailyGoal'
         | 'cardStyle'
@@ -145,6 +148,7 @@ const initial: State = {
   arabicSize: 'm',
   haptics: true,
   premium: false,
+  lifetime: false,
   day: today(),
   viewedToday: 0,
   dailyGoal: FREE_DAILY_CARDS,
