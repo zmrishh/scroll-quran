@@ -6,7 +6,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ArtPanel } from '@/components/art';
 import { Icon } from '@/components/icon';
+import { PaywallPanel } from '@/components/paywall-panel';
 import { PrimaryButton } from '@/components/primary-button';
+import { SignInPanel } from '@/components/sign-in-panel';
 import type { ArtKey } from '@/data/art';
 import { PASSAGES, passageEnglish, passageRef, TOPICS, topicLabel, type Topic } from '@/data/content';
 import { haptic } from '@/lib/feedback';
@@ -14,7 +16,7 @@ import { DAILY_GOALS, useApp } from '@/store/app-store';
 import { makeStyles, useColors } from '@/theme/theme';
 import { eyebrow, fonts, layout } from '@/theme/tokens';
 
-type Step = 'welcome' | 'why' | 'topics' | 'goal' | 'building' | 'plan';
+type Step = 'welcome' | 'why' | 'topics' | 'goal' | 'building' | 'plan' | 'paywall' | 'account';
 const QUESTIONS: Step[] = ['why', 'topics', 'goal'];
 const ART_FOR: Record<Step, ArtKey> = {
   welcome: 'fatiha',
@@ -23,6 +25,8 @@ const ART_FOR: Record<Step, ArtKey> = {
   goal: 'morocco',
   building: 'baghdad',
   plan: 'baghdad',
+  paywall: 'fatiha',
+  account: 'blue',
 };
 
 const WHY = ['Closeness to Allah', 'Calm in hard times', 'A daily habit', 'Understanding the words'];
@@ -41,24 +45,30 @@ export default function Onboarding() {
   const [why, setWhy] = useState<string[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [goal, setGoal] = useState<(typeof DAILY_GOALS)[number] | null>(null);
+  const [bought, setBought] = useState(false);
 
   const toggle = <T,>(list: T[], item: T) => (list.includes(item) ? list.filter((x) => x !== item) : [...list, item]);
   const question = QUESTIONS.indexOf(step);
-  const back = () => setStep(step === 'plan' ? 'goal' : step === 'why' ? 'welcome' : QUESTIONS[question - 1]);
+  const back = () =>
+    setStep(step === 'paywall' ? 'plan' : step === 'plan' ? 'goal' : step === 'why' ? 'welcome' : QUESTIONS[question - 1]);
 
-  const finish = () => {
+  // After the plan: Plus first, while the plan is fresh; then an account to keep it on any phone; then the app.
+  // Anyone already on Plus or already signed in skips that step.
+  const next = (from: 'plan' | 'paywall') => {
+    const s = useApp.getState();
+    if (from === 'plan' && !s.premium) setStep('paywall');
+    else if (!s.account) setStep('account');
+    else router.replace('/');
+  };
+
+  const startPlan = () => {
     useApp.getState().completeOnboarding(topics, 'both', goal ?? DAILY_GOALS[0]);
-    if (useApp.getState().account) {
-      router.replace('/');
-      setTimeout(() => router.push('/paywall'), 450);
-    } else {
-      router.replace({ pathname: '/sign-in', params: { from: 'onboarding' } });
-    }
+    next('plan');
   };
 
   // Full-screen art for the welcome and the pause; a band across the top for the rest.
   const fullBleed = step === 'welcome' || step === 'building';
-  const band = height * (step === 'plan' ? 0.3 : 0.38);
+  const band = height * (step === 'paywall' ? 0.2 : step === 'plan' ? 0.3 : step === 'account' ? 0.4 : 0.38);
 
   return (
     <View style={styles.screen}>
@@ -70,11 +80,16 @@ export default function Onboarding() {
         style={fullBleed ? StyleSheet.absoluteFill : { height: band }}
       />
 
-      {!fullBleed && (
+      {!fullBleed && step !== 'account' && (
         <View style={[styles.topBar, { top: insets.top + 6 }]}>
           <Pressable hitSlop={12} onPress={back} style={styles.back} accessibilityLabel="Back">
             <Icon name="chevron-left" size={20} color={colors.text} strokeWidth={2} />
           </Pressable>
+          {step === 'paywall' && (
+            <Pressable hitSlop={10} onPress={() => next('paywall')} style={styles.skip} accessibilityRole="button">
+              <Text style={styles.skipText}>Not now</Text>
+            </Pressable>
+          )}
           {question >= 0 && (
             <View style={styles.progress}>
               {QUESTIONS.map((q, i) => (
@@ -85,6 +100,14 @@ export default function Onboarding() {
         </View>
       )}
 
+      {step === 'account' ? (
+        <SignInPanel
+          initialMode="up"
+          upTitle={bought ? 'Save your Plus' : 'Save your plan'}
+          onDone={() => router.replace('/')}
+          bottomInset={insets.bottom + 16}
+        />
+      ) : (
       <View style={[styles.body, { paddingBottom: insets.bottom + 16 }, fullBleed && styles.bodyBottom]}>
         {step === 'welcome' && (
           <Animated.View entering={FadeIn.delay(300).duration(800)}>
@@ -163,11 +186,27 @@ export default function Onboarding() {
 
         {step === 'plan' && <Plan topics={topics} goal={goal ?? DAILY_GOALS[0]} />}
 
+        {step === 'paywall' && (
+          <Animated.View key="paywall" entering={FadeIn.duration(350)} style={styles.flex}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.paywall}>
+              <Text style={styles.eyebrow}>Scroll Quran Plus</Text>
+              <PaywallPanel
+                reason="welcome"
+                onSubscribed={() => {
+                  setBought(true);
+                  next('paywall');
+                }}
+              />
+            </ScrollView>
+          </Animated.View>
+        )}
+
         {step === 'why' && <PrimaryButton label="Continue" disabled={!why.length} onPress={() => setStep('topics')} />}
         {step === 'topics' && <PrimaryButton label="Continue" disabled={!topics.length} onPress={() => setStep('goal')} />}
         {step === 'goal' && <PrimaryButton label="Continue" disabled={!goal} onPress={() => setStep('building')} />}
-        {step === 'plan' && <PrimaryButton label="Save my plan" onPress={finish} />}
+        {step === 'plan' && <PrimaryButton label="Start my plan" onPress={startPlan} />}
       </View>
+      )}
     </View>
   );
 }
@@ -258,6 +297,16 @@ const useStyles = makeStyles((colors) => ({
     justifyContent: 'center',
   },
   progress: { flex: 1, flexDirection: 'row', gap: 6 },
+  skip: {
+    marginLeft: 'auto',
+    height: 34,
+    paddingHorizontal: 14,
+    borderRadius: 17,
+    backgroundColor: `rgba(${colors.pageRgb},0.7)`,
+    justifyContent: 'center',
+  },
+  skipText: { fontFamily: fonts.uiMedium, fontSize: 14, color: colors.text },
+  paywall: { paddingTop: 4, paddingBottom: 12 },
   progressPart: { flex: 1, height: 2, borderRadius: 1, backgroundColor: `rgba(${colors.textRgb},0.25)` },
   progressOn: { backgroundColor: colors.gold },
   body: { flex: 1, paddingHorizontal: layout.gutter, paddingTop: 6, width: '100%', maxWidth: 600, alignSelf: 'center' },

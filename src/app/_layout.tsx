@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { Appearance, Platform, Pressable, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { LaunchSplash } from '@/components/launch-splash';
 import { StreakCelebration } from '@/components/streak-celebration';
 import { setupPurchases } from '@/lib/purchases';
 import { useApp } from '@/store/app-store';
@@ -55,6 +56,8 @@ export default function RootLayout() {
   const hydrated = useHydrated();
   const ready = (fontsLoaded || !!fontError) && hydrated;
   const appearance = useApp((s) => s.appearance);
+  // The animated launch plays once, as the native splash hands over.
+  const [launching, setLaunching] = useState(true);
   const base = colors.scheme === 'dark' ? DarkTheme : DefaultTheme;
   const theme = { ...base, colors: { ...base.colors, background: colors.page, card: colors.page, primary: colors.text } };
 
@@ -92,6 +95,7 @@ export default function RootLayout() {
           <Stack.Screen name="surah/[n]" />
         </Stack>
         <StreakCelebration />
+        {launching && <LaunchSplash onDone={() => setLaunching(false)} />}
       </ThemeProvider>
     </GestureHandlerRootView>
   );

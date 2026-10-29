@@ -92,11 +92,7 @@
         {
           "backgroundColor": "#F6F1E6",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 110,
-          "dark": {
-            "image": "./assets/images/splash-icon.png",
-            "backgroundColor": "#0C1512"
-          }
+          "imageWidth": 110
         }
       ],
       "expo-sharing",
