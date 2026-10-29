@@ -16,10 +16,11 @@ import { DAILY_GOALS, useApp } from '@/store/app-store';
 import { makeStyles, useColors } from '@/theme/theme';
 import { eyebrow, fonts, layout } from '@/theme/tokens';
 
-type Step = 'welcome' | 'why' | 'topics' | 'goal' | 'building' | 'plan' | 'paywall' | 'account';
+type Step = 'welcome' | 'signin' | 'why' | 'topics' | 'goal' | 'building' | 'plan' | 'paywall' | 'account';
 const QUESTIONS: Step[] = ['why', 'topics', 'goal'];
 const ART_FOR: Record<Step, ArtKey> = {
   welcome: 'fatiha',
+  signin: 'blue',
   why: 'rosette',
   topics: 'blue',
   goal: 'morocco',
@@ -46,6 +47,7 @@ export default function Onboarding() {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [goal, setGoal] = useState<(typeof DAILY_GOALS)[number] | null>(null);
   const [bought, setBought] = useState(false);
+  const signedIn = useApp((s) => !!s.account);
 
   const toggle = <T,>(list: T[], item: T) => (list.includes(item) ? list.filter((x) => x !== item) : [...list, item]);
   const question = QUESTIONS.indexOf(step);
@@ -53,7 +55,8 @@ export default function Onboarding() {
     setStep(step === 'paywall' ? 'plan' : step === 'plan' ? 'goal' : step === 'why' ? 'welcome' : QUESTIONS[question - 1]);
 
   // After the plan: Plus first, while the plan is fresh; then an account to keep it on any phone; then the app.
-  // Anyone already on Plus or already signed in skips that step.
+  // Anyone already on Plus or already signed in skips that step, which is why returning people can sign in at the
+  // welcome: Plus they bought before is back before the paywall would show.
   const next = (from: 'plan' | 'paywall') => {
     const s = useApp.getState();
     if (from === 'plan' && !s.premium) setStep('paywall');
@@ -68,7 +71,8 @@ export default function Onboarding() {
 
   // Full-screen art for the welcome and the pause; a band across the top for the rest.
   const fullBleed = step === 'welcome' || step === 'building';
-  const band = height * (step === 'paywall' ? 0.2 : step === 'plan' ? 0.3 : step === 'account' ? 0.4 : 0.38);
+  const signing = step === 'account' || step === 'signin';
+  const band = height * (step === 'paywall' ? 0.2 : step === 'plan' ? 0.3 : signing ? 0.4 : 0.38);
 
   return (
     <View style={styles.screen}>
@@ -80,7 +84,7 @@ export default function Onboarding() {
         style={fullBleed ? StyleSheet.absoluteFill : { height: band }}
       />
 
-      {!fullBleed && step !== 'account' && (
+      {!fullBleed && !signing && (
         <View style={[styles.topBar, { top: insets.top + 6 }]}>
           <Pressable hitSlop={12} onPress={back} style={styles.back} accessibilityLabel="Back">
             <Icon name="chevron-left" size={20} color={colors.text} strokeWidth={2} />
@@ -100,7 +104,14 @@ export default function Onboarding() {
         </View>
       )}
 
-      {step === 'account' ? (
+      {step === 'signin' ? (
+        <SignInPanel
+          initialMode="in"
+          inTitle="Welcome back"
+          onDone={(account) => setStep(account ? 'why' : 'welcome')}
+          bottomInset={insets.bottom + 16}
+        />
+      ) : step === 'account' ? (
         <SignInPanel
           initialMode="up"
           upTitle={bought ? 'Save your Plus' : 'Save your plan'}
@@ -114,6 +125,13 @@ export default function Onboarding() {
             <Text style={styles.brand}>Scroll Quran</Text>
             <Text style={styles.display}>The Quran, one verse at a time.</Text>
             <PrimaryButton label="Begin" onPress={() => setStep('why')} style={{ marginTop: 28 }} />
+            {!signedIn && (
+              <Pressable hitSlop={8} onPress={() => setStep('signin')} style={styles.returning} accessibilityRole="button">
+                <Text style={styles.returningText}>
+                  Already have an account? <Text style={styles.returningLink}>Sign in</Text>
+                </Text>
+              </Pressable>
+            )}
           </Animated.View>
         )}
 
@@ -313,6 +331,9 @@ const useStyles = makeStyles((colors) => ({
   bodyBottom: { justifyContent: 'flex-end' },
   brand: { ...eyebrow, color: colors.gold },
   display: { fontFamily: fonts.read, fontSize: 38, lineHeight: 46, color: colors.text, marginTop: 10 },
+  returning: { alignSelf: 'center', marginTop: 16, paddingVertical: 4 },
+  returningText: { fontFamily: fonts.ui, fontSize: 14.5, color: colors.read },
+  returningLink: { fontFamily: fonts.uiMedium, color: colors.gold },
   h1: { fontFamily: fonts.read, fontSize: 28, lineHeight: 36, color: colors.text },
   list: { marginTop: 14 },
   line: {

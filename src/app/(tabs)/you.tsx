@@ -158,7 +158,15 @@ export default function YouScreen() {
           </View>
         </Surface>
 
-        {!s.premium && (
+        {s.premium ? (
+          <Surface accent style={styles.plus}>
+            <View style={styles.plusHead}>
+              <Text style={styles.plusTitle}>Scroll Quran Plus</Text>
+              <Text style={styles.plusBadge}>Active</Text>
+            </View>
+            <Text style={styles.plusBody}>No daily limit, every topic feed, unlimited saves and clean shares.</Text>
+          </Surface>
+        ) : (
           <Surface accent style={styles.plus}>
             <Text style={styles.plusTitle}>Scroll Quran Plus</Text>
             <Text style={styles.plusBody}>No daily limit, every topic feed and unlimited saves.</Text>
@@ -212,6 +220,9 @@ export default function YouScreen() {
             }}
           />
           {isDemo && s.premium && <Row label="Turn off Plus (demo)" divider onPress={() => s.set({ premium: false })} />}
+          {__DEV__ && !s.premium && s.viewedToday > 0 && (
+            <Row label="Reset today’s free cards (development)" divider onPress={() => useApp.setState({ viewedToday: 0 })} />
+          )}
         </Surface>
 
         {!s.account && (
@@ -312,7 +323,19 @@ const useStyles = makeStyles((colors) => ({
   nameText: { fontFamily: fonts.arabic, fontSize: 14, lineHeight: 28, color: colors.gold },
   nameDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.line },
   plus: { marginTop: 30 },
+  plusHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   plusTitle: { fontFamily: fonts.read, fontSize: 22, color: colors.text },
+  plusBadge: {
+    fontFamily: fonts.uiMedium,
+    fontSize: 12,
+    letterSpacing: 0.4,
+    color: colors.onGold,
+    backgroundColor: colors.gold,
+    borderRadius: 999,
+    overflow: 'hidden',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
   plusBody: { fontFamily: fonts.ui, fontSize: 14.5, lineHeight: 21, color: colors.read, marginTop: 4 },
   group: { paddingVertical: 4 },
   setting: { paddingVertical: 14, gap: 10 },

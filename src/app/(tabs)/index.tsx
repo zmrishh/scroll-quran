@@ -6,9 +6,9 @@ import { FeedHeader } from '@/components/feed-header';
 import type { Topic } from '@/data/content';
 import type { FeedItem } from '@/feed/engine';
 import { createSession } from '@/feed/session';
+import { takePendingTopic } from '@/lib/upsell';
 import { useApp } from '@/store/app-store';
 import { makeStyles } from '@/theme/theme';
-
 
 const BATCH = 10;
 
@@ -26,6 +26,7 @@ export default function FeedScreen() {
   const activeSince = useRef(0);
   const onActiveChange = useRef<(index: number) => void>(() => {});
   const restart = useRef<() => void>(() => {});
+  const changeTopicRef = useRef<(t: Topic | null) => void>(() => {});
 
   useEffect(() => {
     activeSince.current = Date.now();
@@ -44,13 +45,17 @@ export default function FeedScreen() {
     return () => sub.remove();
   }, []);
 
-  // Upgrading mid-session removes the limit card and keeps the feed flowing.
+  // Upgrading opens the topic that was tapped, or removes the limit card and keeps the feed flowing. Losing Plus
+  // (a lapsed subscription, a refund) starts "For you" again under the free allowance.
   useEffect(
     () =>
       useApp.subscribe((s, prev) => {
-        if (s.premium && !prev.premium && session.unlock()) {
-          setItems((list) => [...list.filter((i) => i.kind !== 'limit'), ...session.take(BATCH)]);
-        }
+        // Development only: "Reset today's free cards" in the You tab.
+        if (!s.premium && s.day === prev.day && s.viewedToday === 0 && prev.viewedToday > 0) changeTopicRef.current(null);
+        if (s.premium === prev.premium) return;
+        const topic = s.premium ? takePendingTopic() : null;
+        if (!s.premium || topic) changeTopicRef.current(topic);
+        else if (session.unlock()) setItems((list) => [...list.filter((i) => i.kind !== 'limit'), ...session.take(BATCH)]);
       }),
     [session],
   );
@@ -101,6 +106,7 @@ export default function FeedScreen() {
 
   useEffect(() => {
     restart.current = () => changeTopic(session.topic);
+    changeTopicRef.current = changeTopic;
   });
 
   return (

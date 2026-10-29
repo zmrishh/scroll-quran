@@ -27,8 +27,9 @@ export type SignInMode = "up" | "in";
 
 type Props = {
   initialMode?: SignInMode;
-  /** The heading in sign-up mode, which fits where the panel is shown. */
+  /** The headings for each mode, which fit where the panel is shown. */
   upTitle?: string;
+  inTitle?: string;
   /** Called with the account after signing in, or null for "Not now". */
   onDone: (account: Account | null) => void;
   bottomInset: number;
@@ -42,6 +43,7 @@ type Props = {
 export function SignInPanel({
   initialMode = "in",
   upTitle = "Create your account",
+  inTitle = "Sign in",
   onDone,
   bottomInset,
 }: Props) {
@@ -101,7 +103,7 @@ export function SignInPanel({
           entering={FadeIn.duration(250)}
           style={styles.h1}
         >
-          {up ? upTitle : "Sign in"}
+          {up ? upTitle : inTitle}
         </Animated.Text>
 
         <View
