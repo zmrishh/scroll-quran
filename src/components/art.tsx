@@ -5,7 +5,8 @@ import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-na
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 
 import { ART, type ArtKey } from '@/data/art';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts } from '@/theme/tokens';
 
 type Props = {
   art: ArtKey;
@@ -20,6 +21,8 @@ type Props = {
 
 /** A piece of manuscript illumination that drifts very slowly, fading into the page. */
 export function ArtPanel({ art, style, fade = 'edge', caption = 'bottom', inset = 0 }: Props) {
+  const colors = useColors();
+  const styles = useStyles();
   const piece = ART[art];
   const drift = useSharedValue(0);
 
@@ -37,7 +40,7 @@ export function ArtPanel({ art, style, fade = 'edge', caption = 'bottom', inset 
         <Image source={piece.source} contentFit="cover" transition={500} style={StyleSheet.absoluteFill} accessible={false} />
       </Animated.View>
       <LinearGradient
-        colors={fade === 'deep' ? ['rgba(12,21,18,0.35)', 'rgba(12,21,18,0)', 'rgba(12,21,18,0.75)', colors.page] : ['rgba(12,21,18,0.45)', 'rgba(12,21,18,0)', 'rgba(12,21,18,0)', colors.page]}
+        colors={fade === 'deep' ? [`rgba(${colors.pageRgb},0.35)`, `rgba(${colors.pageRgb},0)`, `rgba(${colors.pageRgb},0.75)`, colors.page] : [`rgba(${colors.pageRgb},0.45)`, `rgba(${colors.pageRgb},0)`, `rgba(${colors.pageRgb},0)`, colors.page]}
         locations={fade === 'deep' ? [0, 0.25, 0.62, 0.9] : [0, 0.3, 0.72, 1]}
         style={StyleSheet.absoluteFill}
       />
@@ -52,7 +55,7 @@ export function ArtPanel({ art, style, fade = 'edge', caption = 'bottom', inset 
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   frame: { overflow: 'hidden', backgroundColor: colors.raised },
   caption: {
     position: 'absolute',
@@ -65,4 +68,4 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0,0,0,0.6)',
     textShadowRadius: 6,
   },
-});
+}));

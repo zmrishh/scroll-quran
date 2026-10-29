@@ -8,7 +8,8 @@ import { PrayerCard } from '@/components/prayer-card';
 import { Surface } from '@/components/ui';
 import { surahInfo, SURAHS, type Surah } from '@/data/content';
 import { useApp } from '@/store/app-store';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts, layout } from '@/theme/tokens';
 
 const openSurah = (n: number, ayah?: number) =>
   router.push({ pathname: '/surah/[n]', params: ayah ? { n: String(n), ayah: String(ayah) } : { n: String(n) } });
@@ -22,6 +23,8 @@ function matches(s: Surah, q: string) {
 }
 
 export default function QuranScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const lastRead = useApp((s) => s.lastRead);
   const [query, setQuery] = useState('');
@@ -97,12 +100,12 @@ export default function QuranScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.page },
-  content: { paddingHorizontal: 20, paddingBottom: 30, maxWidth: 600, width: '100%', alignSelf: 'center' },
-  header: { marginBottom: 8, paddingHorizontal: 8 },
+  content: { paddingHorizontal: layout.gutter, paddingBottom: 30, maxWidth: 600, width: '100%', alignSelf: 'center' },
+  header: { marginBottom: 8, gap: layout.gap },
   title: { fontFamily: fonts.read, fontSize: 32, color: colors.text },
-  continue: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 18 },
+  continue: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   continueLabel: { fontFamily: fonts.ui, fontSize: 12.5, color: colors.gold },
   continueName: { fontFamily: fonts.uiMedium, fontSize: 16, color: colors.text, marginTop: 2 },
   continueArabic: { fontFamily: fonts.arabic, fontSize: 22, lineHeight: 42, color: colors.gold },
@@ -111,27 +114,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     height: 44,
-    marginTop: 18,
     paddingHorizontal: 14,
-    borderRadius: 12,
+    borderRadius: layout.radius.md,
     backgroundColor: colors.raised,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.line,
   },
   searchInput: { flex: 1, fontFamily: fonts.ui, fontSize: 15, color: colors.text, padding: 0 },
-  empty: { fontFamily: fonts.read, fontSize: 16, color: colors.quiet, marginTop: 20, paddingHorizontal: 8 },
+  empty: { fontFamily: fonts.read, fontSize: 16, color: colors.quiet, marginTop: 20 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
     paddingVertical: 14,
-    paddingHorizontal: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.line,
   },
-  num: { width: 36, height: 36, borderRadius: 10, backgroundColor: colors.raised, alignItems: 'center', justifyContent: 'center' },
+  num: { width: 36, height: 36, borderRadius: layout.radius.sm, backgroundColor: colors.raised, alignItems: 'center', justifyContent: 'center' },
   numText: { fontFamily: fonts.uiMedium, fontSize: 13, color: colors.gold, fontVariant: ['tabular-nums'] },
   name: { fontFamily: fonts.uiMedium, fontSize: 16, color: colors.text },
   meta: { fontFamily: fonts.ui, fontSize: 12.5, color: colors.quiet, marginTop: 2 },
   arabic: { fontFamily: fonts.arabic, fontSize: 20, lineHeight: 38, color: colors.gold },
-});
+}));

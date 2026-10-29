@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View, type HostInstance } from 'react-native';
+import { Text, View, type HostInstance } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 
 import { contentKey, DHIKR, DUAS, NAMES, PASSAGES, passageRef, surahInfo, type ContentKind } from '@/data/content';
@@ -10,7 +10,8 @@ import { shareCard } from '@/lib/share';
 import { saveOrUpsell } from '@/lib/upsell';
 import { useApp, type Mood } from '@/store/app-store';
 import { useChrome } from '@/theme/layout';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts, layout } from '@/theme/tokens';
 
 import { CardFooter } from './action-row';
 import { CardFrame } from './card-frame';
@@ -199,6 +200,8 @@ export function itemFromKey(key: string): FeedItem | null {
 }
 
 function SwipeHint({ bottom }: { bottom: number }) {
+  const colors = useColors();
+  const styles = useStyles();
   const y = useSharedValue(0);
   useEffect(() => {
     y.set(withDelay(1200, withRepeat(withSequence(withTiming(-5, { duration: 600 }), withTiming(0, { duration: 600 })), -1, false)));
@@ -217,6 +220,7 @@ function SwipeHint({ bottom }: { bottom: number }) {
  * New free cards arrive at midnight; until then the only way on is Plus.
  */
 function LimitCard({ height }: { height: number }) {
+  const styles = useStyles();
   const chrome = useChrome();
   const now = new Date();
   const midnight = new Date(now);
@@ -232,9 +236,9 @@ function LimitCard({ height }: { height: number }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   hint: { position: 'absolute', left: 0, right: 0, alignItems: 'center', gap: 2 },
   hintText: { fontFamily: fonts.ui, fontSize: 12.5, color: colors.faint },
-  limit: { backgroundColor: colors.page, paddingHorizontal: 28, justifyContent: 'center' },
+  limit: { backgroundColor: colors.page, paddingHorizontal: layout.gutter, justifyContent: 'center' },
   limitReset: { fontFamily: fonts.ui, fontSize: 12.5, color: colors.quiet, textAlign: 'center', marginTop: 10 },
-});
+}));

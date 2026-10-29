@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { arabicNumber, type Passage } from '@/data/content';
 import { haptic } from '@/lib/feedback';
 import { useApp, type ArabicSize } from '@/store/app-store';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts } from '@/theme/tokens';
 
 import { arabicSize } from './reading';
 
@@ -21,6 +22,7 @@ type Token = { text: string; marker: boolean };
  * Going through the whole passage counts once towards "ayat memorised".
  */
 export function MemoriseArabic({ ayat, size }: { ayat: Passage['ayat']; size: ArabicSize }) {
+  const styles = useStyles();
   const tokens: Token[] = ayat.flatMap((a) => [
     ...a.ar.split(' ').map((w) => ({ text: w, marker: false })),
     { text: `۝${arabicNumber(a.n)}`, marker: true },
@@ -98,6 +100,8 @@ export function MemoriseArabic({ ayat, size }: { ayat: Passage['ayat']; size: Ar
 
 /** The quiet text button that switches a card into and out of memorise mode. */
 export function MemoriseToggle({ on, onPress }: { on: boolean; onPress: () => void }) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <Pressable
       hitSlop={10}
@@ -112,7 +116,7 @@ export function MemoriseToggle({ on, onPress }: { on: boolean; onPress: () => vo
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   words: { flexDirection: 'row-reverse', flexWrap: 'wrap', alignItems: 'center' },
   word: { fontFamily: fonts.quran, color: colors.text, writingDirection: 'rtl' },
   hidden: { color: 'transparent', backgroundColor: colors.line, borderRadius: 8 },
@@ -124,4 +128,4 @@ const styles = StyleSheet.create({
   done: { fontFamily: fonts.read, fontSize: 15, lineHeight: 22, color: colors.gold, marginTop: 10 },
   toggle: { alignSelf: 'flex-start', marginTop: 20 },
   toggleText: { fontFamily: fonts.uiMedium, fontSize: 13.5, color: colors.quiet },
-});
+}));

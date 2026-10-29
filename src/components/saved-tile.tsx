@@ -2,12 +2,14 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { lookup, passageEnglish, passageRef, surahInfo } from '@/data/content';
 import { useApp } from '@/store/app-store';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles } from '@/theme/theme';
+import { fonts } from '@/theme/tokens';
 
 import { Surface, timeAgo } from './ui';
 
 /** A saved card shown as a small version of itself: the Arabic, the line worth keeping, your note. */
 export function SavedCard({ contentKey, at }: { contentKey: string; at: number }) {
+  const styles = useStyles();
   const note = useApp((s) => s.notes[contentKey]);
   const found = lookup(contentKey);
   if (!found?.item) return null;
@@ -59,6 +61,7 @@ export function SavedCard({ contentKey, at }: { contentKey: string; at: number }
 }
 
 function Footer({ arabic, label, at }: { arabic?: string; label: string; at: number }) {
+  const styles = useStyles();
   return (
     <View style={styles.footer}>
       {arabic && <Text style={styles.footerArabic}>{arabic}</Text>}
@@ -70,7 +73,7 @@ function Footer({ arabic, label, at }: { arabic?: string; label: string; at: num
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   duaTitle: { fontFamily: fonts.uiMedium, fontSize: 14, color: colors.gold, marginBottom: 4 },
   arabic: { fontFamily: fonts.quran, fontSize: 21, lineHeight: 40, color: colors.text, textAlign: 'right', writingDirection: 'rtl' },
   line: { fontFamily: fonts.read, fontSize: 16, lineHeight: 23, color: colors.read, marginTop: 6 },
@@ -94,4 +97,4 @@ const styles = StyleSheet.create({
   footerArabic: { fontFamily: fonts.arabic, fontSize: 14, lineHeight: 26, color: colors.gold },
   footerLabel: { flex: 1, fontFamily: fonts.ui, fontSize: 12.5, color: colors.quiet },
   footerTime: { fontFamily: fonts.ui, fontSize: 12, color: colors.faint },
-});
+}));

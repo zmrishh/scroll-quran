@@ -7,7 +7,8 @@ import { haptic } from '@/lib/feedback';
 import { openPaywall } from '@/lib/upsell';
 import { FREE_DAILY_CARDS, useApp } from '@/store/app-store';
 import { HEADER_HEIGHT } from '@/theme/layout';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts, layout } from '@/theme/tokens';
 
 import { Icon } from './icon';
 
@@ -15,6 +16,8 @@ type Props = { topic: Topic | null; onTopic: (t: Topic | null) => void };
 
 /** Wordmark, a topic picker and today's count. Nothing else sits above the verse. */
 export function FeedHeader({ topic, onTopic }: Props) {
+  const colors = useColors();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const viewed = useApp((s) => s.viewedToday);
   const premium = useApp((s) => s.premium);
@@ -63,6 +66,8 @@ export function FeedHeader({ topic, onTopic }: Props) {
 type SheetProps = { open: boolean; topic: Topic | null; locked: boolean; onClose: () => void; onPick: (t: Topic | null) => void };
 
 function TopicSheet({ open, topic, locked, onClose, onPick }: SheetProps) {
+  const colors = useColors();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const rows: { id: Topic | null; label: string; arabic: string }[] = [
     { id: null, label: 'For you', arabic: '' },
@@ -100,9 +105,9 @@ function TopicSheet({ open, topic, locked, onClose, onPick }: SheetProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wrap: { position: 'absolute', top: 0, left: 0, right: 0 },
-  row: { height: HEADER_HEIGHT, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 28 },
+  row: { height: HEADER_HEIGHT, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: layout.gutter },
   word: { fontFamily: fonts.uiMedium, fontSize: 14, color: colors.quiet },
   right: { flexDirection: 'row', alignItems: 'center', gap: 18 },
   count: { fontFamily: fonts.ui, fontSize: 13, color: colors.faint, fontVariant: ['tabular-nums'] },
@@ -115,4 +120,4 @@ const styles = StyleSheet.create({
   sheetLabel: { flex: 1, fontFamily: fonts.uiMedium, fontSize: 17, color: colors.read },
   sheetArabic: { fontFamily: fonts.arabic, fontSize: 17, lineHeight: 32, color: colors.quiet },
   sheetCheck: { width: 30, alignItems: 'flex-end' },
-});
+}));

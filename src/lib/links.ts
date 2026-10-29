@@ -1,7 +1,7 @@
 import * as WebBrowser from 'expo-web-browser';
 import { Linking } from 'react-native';
 
-import { colors } from '@/theme/tokens';
+import { currentColors } from '@/theme/theme';
 
 /**
  * Pages that live outside the app. The privacy policy and terms have their own screens (src/app/privacy.tsx,
@@ -20,6 +20,7 @@ export const CONTACT_EMAIL = 'amrish@kenesis.ai';
 
 /** Opens a web page in a browser sheet over the app, so reading it never takes people out of Scroll Quran. */
 export function openLink(url: string) {
+  const colors = currentColors();
   WebBrowser.openBrowserAsync(url, {
     controlsColor: colors.gold,
     toolbarColor: colors.page,

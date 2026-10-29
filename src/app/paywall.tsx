@@ -1,24 +1,22 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Icon } from '@/components/icon';
+import { CloseButton } from '@/components/ui';
 import { PaywallPanel } from '@/components/paywall-panel';
 import type { Topic } from '@/data/content';
 import type { PaywallReason } from '@/lib/upsell';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles } from '@/theme/theme';
+import { eyebrow, layout } from '@/theme/tokens';
 
 export default function Paywall() {
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const { reason = 'welcome', topic } = useLocalSearchParams<{ reason?: PaywallReason; topic?: Topic }>();
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="light" />
-      <Pressable accessibilityLabel="Close" hitSlop={12} onPress={() => router.back()} style={[styles.close, { top: insets.top + 12 }]}>
-        <Icon name="x" size={20} color={colors.quiet} strokeWidth={2} />
-      </Pressable>
+      <CloseButton style={[styles.close, { top: insets.top + 12 }]} />
 
       <ScrollView
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 64, paddingBottom: insets.bottom + 24 }]}
@@ -30,9 +28,9 @@ export default function Paywall() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.page },
-  close: { position: 'absolute', right: 24, zIndex: 2, width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  content: { paddingHorizontal: 28, maxWidth: 560, width: '100%', alignSelf: 'center' },
-  eyebrow: { fontFamily: fonts.uiMedium, fontSize: 14, color: colors.gold, marginBottom: 12 },
-});
+  close: { position: 'absolute', right: layout.gutter - 6, zIndex: 2 },
+  content: { paddingHorizontal: layout.gutter, maxWidth: 560, width: '100%', alignSelf: 'center' },
+  eyebrow: { ...eyebrow, color: colors.gold, marginBottom: 12 },
+}));

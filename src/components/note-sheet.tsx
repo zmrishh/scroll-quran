@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { haptic } from '@/lib/feedback';
 import { useApp } from '@/store/app-store';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts, layout } from '@/theme/tokens';
 
 const MAX = 600;
 
@@ -21,6 +22,8 @@ export function NoteSheet({ open, noteKey, source, onClose }: Props) {
 }
 
 function Sheet({ noteKey, source, onClose }: Omit<Props, 'open'>) {
+  const colors = useColors();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const existing = useApp((s) => s.notes[noteKey]?.text ?? '');
   const [text, setText] = useState(existing);
@@ -68,7 +71,7 @@ function Sheet({ noteKey, source, onClose }: Omit<Props, 'open'>) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   fill: { flex: 1 },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
   sheet: { backgroundColor: colors.raised, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 20, paddingHorizontal: 24 },
@@ -88,6 +91,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 16 },
   buttons: { flexDirection: 'row', alignItems: 'center', gap: 18 },
   secondary: { fontFamily: fonts.uiMedium, fontSize: 15, color: colors.quiet },
-  save: { backgroundColor: colors.gold, borderRadius: 12, paddingHorizontal: 18, height: 40, justifyContent: 'center' },
+  save: { backgroundColor: colors.gold, borderRadius: layout.radius.md, paddingHorizontal: 18, height: 40, justifyContent: 'center' },
   saveText: { fontFamily: fonts.uiMedium, fontSize: 15, color: colors.page },
-});
+}));

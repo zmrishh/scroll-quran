@@ -1,8 +1,7 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { router, useLocalSearchParams } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -12,9 +11,12 @@ import { PrimaryButton } from '@/components/primary-button';
 import { availableProviders, signInForTesting, signInWithApple, signInWithGoogle, type Providers } from '@/lib/auth';
 import { haptic } from '@/lib/feedback';
 import type { Account } from '@/store/app-store';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { eyebrow, fonts, layout } from '@/theme/tokens';
 
 export default function SignIn() {
+  const styles = useStyles();
+  const dark = useColors().scheme === 'dark';
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
   const { from } = useLocalSearchParams<{ from?: string }>();
@@ -50,7 +52,6 @@ export default function SignIn() {
 
   return (
     <View style={[styles.screen, { paddingBottom: insets.bottom + 20 }]}>
-      <StatusBar style="light" />
       <ArtPanel art="blue" caption="bottom" style={{ height: height * 0.46 }} />
       <View style={styles.inner}>
         <Animated.View entering={FadeInDown.delay(200).duration(500)}>
@@ -61,7 +62,8 @@ export default function SignIn() {
             {providers?.apple && (
               <AppleAuthentication.AppleAuthenticationButton
                 buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
+                // Apple's guidelines: the white button on dark backgrounds, the black one on light.
+                buttonStyle={dark ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
                 cornerRadius={14}
                 style={styles.apple}
                 onPress={() => run(signInWithApple)}
@@ -94,6 +96,7 @@ export default function SignIn() {
 
 /** Google's standard light sign-in button: white, with the four-colour G. */
 function GoogleButton({ onPress }: { onPress: () => void }) {
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityRole="button"
@@ -113,17 +116,20 @@ function GoogleButton({ onPress }: { onPress: () => void }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.page },
-  inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 28, maxWidth: 520, width: '100%', alignSelf: 'center' },
-  brand: { fontFamily: fonts.uiMedium, fontSize: 13, letterSpacing: 1.2, color: colors.gold, textTransform: 'uppercase' },
-  h1: { fontFamily: fonts.read, fontSize: 32, lineHeight: 40, color: colors.text, marginTop: 8 },
+  inner: { flex: 1, justifyContent: 'center', paddingHorizontal: layout.gutter, maxWidth: 520, width: '100%', alignSelf: 'center' },
+  brand: { ...eyebrow, color: colors.gold },
+  h1: { fontFamily: fonts.read, fontSize: 28, lineHeight: 36, color: colors.text, marginTop: 8 },
   buttons: { gap: 12, marginTop: 22 },
   apple: { width: '100%', height: 54 },
   google: {
     height: 54,
     borderRadius: 14,
     backgroundColor: '#FFFFFF',
+    // Google's light button keeps a thin outline so it holds its edge on paper.
+    borderWidth: 1,
+    borderColor: colors.line,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -134,4 +140,4 @@ const styles = StyleSheet.create({
   skipText: { fontFamily: fonts.uiMedium, fontSize: 15, color: colors.read },
   legal: { fontFamily: fonts.ui, fontSize: 12.5, lineHeight: 18, color: colors.faint, textAlign: 'center', marginTop: 16 },
   legalLink: { color: colors.quiet, textDecorationLine: 'underline' },
-});
+}));

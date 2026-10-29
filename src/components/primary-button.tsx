@@ -1,7 +1,8 @@
-import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, Text, type StyleProp, type ViewStyle } from 'react-native';
 
 import { haptic } from '@/lib/feedback';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts } from '@/theme/tokens';
 
 type Props = {
   label: string;
@@ -13,6 +14,8 @@ type Props = {
 };
 
 export function PrimaryButton({ label, onPress, disabled, tone = 'solid', style }: Props) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityRole="button"
@@ -32,9 +35,9 @@ export function PrimaryButton({ label, onPress, disabled, tone = 'solid', style 
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   base: { height: 54, borderRadius: 14, alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch' },
   solid: { backgroundColor: colors.gold },
   quiet: { borderWidth: 1, borderColor: colors.line },
   label: { fontFamily: fonts.uiMedium, fontSize: 16 },
-});
+}));

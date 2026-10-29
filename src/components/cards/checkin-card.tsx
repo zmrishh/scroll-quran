@@ -4,12 +4,15 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { MOODS, moodInfo } from '@/data/moods';
 import { haptic } from '@/lib/feedback';
 import { moodToday, useApp, type Mood } from '@/store/app-store';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts } from '@/theme/tokens';
 
 import { Icon } from '../icon';
 
 /** The day's first card: one honest question, and the feed meets the answer. */
 export function CheckInCard({ onPick }: { onPick?: (mood: Mood) => void }) {
+  const colors = useColors();
+  const styles = useStyles();
   const chosen = useApp(moodToday);
 
   return (
@@ -43,7 +46,7 @@ export function CheckInCard({ onPick }: { onPick?: (mood: Mood) => void }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   title: { fontFamily: fonts.read, fontSize: 28, lineHeight: 36, color: colors.text },
   list: { marginTop: 22 },
   row: {
@@ -56,4 +59,4 @@ const styles = StyleSheet.create({
   },
   label: { fontFamily: fonts.uiMedium, fontSize: 18, color: colors.text },
   reply: { fontFamily: fonts.read, fontSize: 16, lineHeight: 24, color: colors.gold, marginTop: 18 },
-});
+}));

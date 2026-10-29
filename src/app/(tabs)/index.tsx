@@ -1,6 +1,5 @@
-import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
-import { AppState, FlatList, Platform, StyleSheet, View, type ListViewToken } from 'react-native';
+import { AppState, FlatList, Platform, View, type ListViewToken } from 'react-native';
 
 import { FeedCard } from '@/components/feed-card';
 import { FeedHeader } from '@/components/feed-header';
@@ -8,11 +7,13 @@ import type { Topic } from '@/data/content';
 import type { FeedItem } from '@/feed/engine';
 import { createSession } from '@/feed/session';
 import { useApp } from '@/store/app-store';
-import { colors } from '@/theme/tokens';
+import { makeStyles } from '@/theme/theme';
+
 
 const BATCH = 10;
 
 export default function FeedScreen() {
+  const styles = useStyles();
   // Cards fill the space above the tab bar, measured rather than assumed.
   const [height, setHeight] = useState(0);
   const hintSeen = useApp((s) => s.hintSeen);
@@ -104,7 +105,6 @@ export default function FeedScreen() {
 
   return (
     <View style={styles.screen} onLayout={(e) => setHeight(e.nativeEvent.layout.height)}>
-      <StatusBar style="light" />
       {height > 0 && (
         <FlatList
           ref={listRef}
@@ -142,6 +142,6 @@ export default function FeedScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.page },
-});
+}));

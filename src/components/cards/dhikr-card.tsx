@@ -6,13 +6,16 @@ import Svg, { Circle } from 'react-native-svg';
 import type { Dhikr } from '@/data/content';
 import { haptic } from '@/lib/feedback';
 import { useApp } from '@/store/app-store';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts } from '@/theme/tokens';
 
 const RING = 210;
 const RADIUS = 92;
 
 /** Dhikr with a 33-bead tasbih: each tap fills a bead; every 11th bead is a little larger. */
 export function DhikrCard({ dhikr }: { dhikr: Dhikr }) {
+  const colors = useColors();
+  const styles = useStyles();
   const [count, setCount] = useState(0);
   const addDhikr = useApp((s) => s.addDhikr);
   const pulse = useSharedValue(1);
@@ -69,7 +72,7 @@ export function DhikrCard({ dhikr }: { dhikr: Dhikr }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   arabic: { fontFamily: fonts.arabic, fontSize: 40, lineHeight: 82, color: colors.text, textAlign: 'right', writingDirection: 'rtl' },
   translit: { fontFamily: fonts.uiMedium, fontSize: 18, color: colors.text, marginTop: 4 },
   meaning: { fontFamily: fonts.read, fontSize: 17, lineHeight: 25, color: colors.read, marginTop: 4 },
@@ -79,4 +82,4 @@ const styles = StyleSheet.create({
   of: { fontFamily: fonts.ui, fontSize: 13, color: colors.quiet },
   hintRow: { alignItems: 'center', marginTop: 12 },
   hint: { fontFamily: fonts.ui, fontSize: 13, color: colors.faint },
-});
+}));

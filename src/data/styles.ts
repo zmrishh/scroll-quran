@@ -18,9 +18,9 @@ export type CardStyle = {
 };
 
 export const CARD_STYLES: readonly CardStyle[] = [
-  // Glow: a different blurred manuscript page behind each card (GLOW in data/art.ts). Night: the plain dark page.
+  // Glow: a different blurred manuscript page behind each card (GLOW in data/art.ts). Plain: the bare page, in either theme.
   { id: 'glow', name: 'Glow', art: null, rule: 'transparent', focus: 'center', product: null },
-  { id: 'night', name: 'Night', art: null, rule: 'transparent', focus: 'center', product: null },
+  { id: 'night', name: 'Plain', art: null, rule: 'transparent', focus: 'center', product: null },
   { id: 'baghdad', name: 'Baghdad', art: 'baghdad', rule: '#C9A65E', focus: 'center', product: null },
   { id: 'blue', name: 'Blue Qur’an', art: 'blue', rule: '#7C97D6', focus: 'center', product: 'style_blue' },
   { id: 'rosette', name: 'Ibrahim Sultan', art: 'rosette', rule: '#C9A65E', focus: 'center', product: 'style_rosette' },

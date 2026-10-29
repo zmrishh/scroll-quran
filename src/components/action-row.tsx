@@ -1,8 +1,9 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 
 import { FOOTER_HEIGHT } from '@/theme/layout';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts } from '@/theme/tokens';
 
 import { Icon, type IconName } from './icon';
 
@@ -26,6 +27,8 @@ type Props = {
 
 /** The card's footer: where the text is from, and like, save and share. */
 export function CardFooter({ label, arabic, bottom, actions, onSource }: Props) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <View style={[styles.row, { bottom }]} pointerEvents="box-none">
       <Pressable
@@ -54,6 +57,7 @@ export function CardFooter({ label, arabic, bottom, actions, onSource }: Props) 
 }
 
 function IconButton({ icon, label, onPress, active = false }: { icon: IconName; label: string; onPress: () => void; active?: boolean }) {
+  const colors = useColors();
   const scale = useSharedValue(1);
   const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   return (
@@ -73,7 +77,7 @@ function IconButton({ icon, label, onPress, active = false }: { icon: IconName; 
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: {
     position: 'absolute',
     left: 28,
@@ -88,4 +92,4 @@ const styles = StyleSheet.create({
   arabic: { fontFamily: fonts.arabic, fontSize: 16, lineHeight: 30, color: colors.gold },
   label: { flexShrink: 1, fontFamily: fonts.ui, fontSize: 13, color: colors.quiet },
   icons: { flexDirection: 'row', gap: 20 },
-});
+}));

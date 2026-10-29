@@ -3,29 +3,25 @@ import { AmiriQuran_400Regular } from '@expo-google-fonts/amiri-quran';
 import { InterTight_400Regular, InterTight_500Medium, InterTight_600SemiBold } from '@expo-google-fonts/inter-tight';
 import { Literata_400Regular, Literata_400Regular_Italic, Literata_500Medium } from '@expo-google-fonts/literata';
 import { useFonts } from 'expo-font';
-import { DarkTheme, Stack, ThemeProvider, type ErrorBoundaryProps } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider, type ErrorBoundaryProps } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Appearance, Platform, Pressable, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { StreakCelebration } from '@/components/streak-celebration';
 import { setupPurchases } from '@/lib/purchases';
 import { useApp } from '@/store/app-store';
-import { colors } from '@/theme/tokens';
+import { ThemedStatusBar, useColors } from '@/theme/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
-
-const theme = {
-  ...DarkTheme,
-  colors: { ...DarkTheme.colors, background: colors.page, card: colors.page, primary: colors.text },
-};
 
 /**
  * Shown instead of a blank screen if anything below crashes. Uses system fonts on purpose,
  * since the crash may have happened before the app's fonts loaded.
  */
 export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
+  const colors = useColors();
   return (
     <View style={{ flex: 1, backgroundColor: colors.page, justifyContent: 'center', paddingHorizontal: 28 }}>
       <Text style={{ fontSize: 22, color: colors.text, fontWeight: '500' }}>Something went wrong.</Text>
@@ -45,6 +41,7 @@ function useHydrated() {
 }
 
 export default function RootLayout() {
+  const colors = useColors();
   const [fontsLoaded, fontError] = useFonts({
     AmiriQuran_400Regular,
     Amiri_700Bold,
@@ -57,6 +54,14 @@ export default function RootLayout() {
   });
   const hydrated = useHydrated();
   const ready = (fontsLoaded || !!fontError) && hydrated;
+  const appearance = useApp((s) => s.appearance);
+  const base = colors.scheme === 'dark' ? DarkTheme : DefaultTheme;
+  const theme = { ...base, colors: { ...base.colors, background: colors.page, card: colors.page, primary: colors.text } };
+
+  // Native pieces (alerts, the keyboard, pickers) follow the app's choice rather than the phone's.
+  useEffect(() => {
+    if (Platform.OS !== 'web') Appearance.setColorScheme(appearance === 'system' ? 'unspecified' : appearance);
+  }, [appearance]);
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync().catch(() => {});
@@ -72,6 +77,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.page }}>
       <ThemeProvider value={theme}>
+        <ThemedStatusBar />
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.page } }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="onboarding" options={{ animation: 'fade', gestureEnabled: false }} />

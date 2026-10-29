@@ -8,7 +8,10 @@ import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTim
 import { GLOW } from '@/data/art';
 import { clock, locate, regionalMethod, schedule, shortClock, until, type LocateResult, type Salah } from '@/lib/prayer';
 import { useApp } from '@/store/app-store';
-import { colors, fonts } from '@/theme/tokens';
+import { eyebrow, fonts, layout, palettes } from '@/theme/tokens';
+
+// The card is a window of manuscript light, dark in both themes, so it keeps the night palette.
+const colors = palettes.dark;
 
 /** The manuscript light behind each prayer, matched to the sky: dawn lapis, midday gold, amber, sunset red, night indigo. */
 const LIGHT: Record<Salah['key'], number> = { fajr: 1, dhuhr: 5, asr: 8, maghrib: 4, isha: 0 };
@@ -103,8 +106,8 @@ function Light({ index, style, children }: { index: number; style: StyleProp<Vie
     <View style={style}>
       <Image source={GLOW[index]} contentFit="cover" transition={600} style={StyleSheet.absoluteFill} accessible={false} />
       <LinearGradient
-        colors={['rgba(12,21,18,0.25)', 'rgba(12,21,18,0.6)', 'rgba(12,21,18,0.88)']}
-        locations={[0, 0.5, 1]}
+        colors={['rgba(12,21,18,0.3)', 'rgba(12,21,18,0.42)', 'rgba(12,21,18,0.85)']}
+        locations={[0, 0.45, 1]}
         style={StyleSheet.absoluteFill}
       />
       {children}
@@ -130,13 +133,13 @@ function NextDot() {
 const DOT = 14;
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 20, overflow: 'hidden', padding: 20, marginBottom: 12, backgroundColor: colors.raised },
+  card: { borderRadius: layout.radius.lg, overflow: 'hidden', padding: 20, backgroundColor: colors.raised },
   prompt: { paddingVertical: 22 },
   promptRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
   promptTitle: { flex: 1, fontFamily: fonts.read, fontSize: 24, color: colors.text },
   promptArrow: { fontFamily: fonts.read, fontSize: 24, color: colors.gold },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  eyebrow: { fontFamily: fonts.uiMedium, fontSize: 12, letterSpacing: 1.4, color: colors.gold, textTransform: 'uppercase' },
+  eyebrow: { ...eyebrow, color: colors.gold },
   at: { fontFamily: fonts.uiMedium, fontSize: 15, color: colors.text, fontVariant: ['tabular-nums'] },
   titleRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 10 },
   name: { fontFamily: fonts.read, fontSize: 42, lineHeight: 50, color: colors.text },

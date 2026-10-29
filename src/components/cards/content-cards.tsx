@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 
 import { contentKey, passageEnglish, type DivineName, type Dua } from '@/data/content';
 import { haptic } from '@/lib/feedback';
 import { useApp, type ArabicSize, type Display } from '@/store/app-store';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts } from '@/theme/tokens';
 
 import { canMemorise, MemoriseArabic, MemoriseToggle } from '../memorise';
 import { Arabic, Translation, translationSize } from '../reading';
 
 /** A dua: one line on when to say it, the Arabic, and the words with their narration quieter. */
 export function DuaCard({ dua, display, size }: { dua: Dua; display: Display; size: ArabicSize }) {
+  const styles = useStyles();
   const en = passageEnglish(dua);
   const [memorising, setMemorising] = useState(false);
   return (
@@ -38,6 +40,8 @@ export function DuaCard({ dua, display, size }: { dua: Dua; display: Display; si
 
 /** Saying "Ameen" to a dua, the way people answer duas shared online; the app keeps a private count. */
 function AmeenButton({ duaKey }: { duaKey: string }) {
+  const colors = useColors();
+  const styles = useStyles();
   const [said, setSaid] = useState(false);
   const count = useApp((s) => s.ameen[duaKey] ?? 0);
   const scale = useSharedValue(1);
@@ -65,6 +69,7 @@ function AmeenButton({ duaKey }: { duaKey: string }) {
 
 /** A Name of Allah: the Arabic large, then its meaning and one line to sit with. */
 export function NameCard({ name }: { name: DivineName }) {
+  const styles = useStyles();
   return (
     <>
       <Text style={styles.nameArabic}>{name.arabic}</Text>
@@ -78,7 +83,7 @@ export function NameCard({ name }: { name: DivineName }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   when: { fontFamily: fonts.ui, fontSize: 14, lineHeight: 20, color: colors.quiet, marginBottom: 22 },
   whenTitle: { fontFamily: fonts.uiMedium, color: colors.read },
   gap: { marginTop: 22 },
@@ -94,4 +99,4 @@ const styles = StyleSheet.create({
   reflection: { fontFamily: fonts.readItalic, fontSize: 17, lineHeight: 26, color: colors.read, marginTop: 26 },
   root: { fontFamily: fonts.ui, fontSize: 13, color: colors.faint, marginTop: 26 },
   rootLetters: { fontFamily: fonts.arabic, fontSize: 15, color: colors.gold },
-});
+}));

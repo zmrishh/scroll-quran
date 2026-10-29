@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import Animated, {
   Easing,
   FadeIn,
@@ -16,7 +16,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { haptic } from '@/lib/feedback';
 import { useApp } from '@/store/app-store';
 import { useCelebration } from '@/store/celebration';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts, layout } from '@/theme/tokens';
 
 import { Mark } from './mark';
 import { PrimaryButton } from './primary-button';
@@ -48,6 +49,8 @@ export function StreakCelebration() {
 }
 
 function Celebration({ streak }: { streak: number }) {
+  const colors = useColors();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const read = useApp((s) => s.viewedToday);
   const activeDays = useApp((s) => s.activeDays);
@@ -126,6 +129,7 @@ function Celebration({ streak }: { streak: number }) {
 
 /** A ring of light that widens and fades from behind the mark. */
 function Ring({ progress, delay }: { progress: SharedValue<number>; delay: number }) {
+  const styles = useStyles();
   const style = useAnimatedStyle(() => {
     const p = Math.max(0, (progress.get() - delay) / (1 - delay));
     return { opacity: p === 0 ? 0 : 0.7 * (1 - p), transform: [{ scale: 0.6 + 1.9 * p }] };
@@ -135,6 +139,7 @@ function Ring({ progress, delay }: { progress: SharedValue<number>; delay: numbe
 
 /** A small gold diamond thrown outwards. Angles and distances vary by index so the burst isn't a perfect circle. */
 function Spark({ index, progress }: { index: number; progress: SharedValue<number> }) {
+  const styles = useStyles();
   const angle = (index / SPARKS) * Math.PI * 2 + ((index * 7) % 5) * 0.06;
   const distance = 92 + ((index * 37) % 56);
   const size = 4 + ((index * 3) % 4);
@@ -154,6 +159,7 @@ function Spark({ index, progress }: { index: number; progress: SharedValue<numbe
 }
 
 function TodayDot() {
+  const styles = useStyles();
   const pop = useSharedValue(0);
   useEffect(() => {
     pop.set(withDelay(DOT_AT, withSequence(withTiming(1.3, { duration: 180 }), withSpring(1, { damping: 8 }))));
@@ -166,8 +172,8 @@ function TodayDot() {
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, zIndex: 100, backgroundColor: '#09110E', paddingHorizontal: 28 },
+const useStyles = makeStyles((colors) => ({
+  backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, zIndex: 100, backgroundColor: colors.page, paddingHorizontal: layout.gutter },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   burst: { width: 300, height: 260, alignItems: 'center', justifyContent: 'center' },
   glow: { position: 'absolute', width: 190, height: 190, borderRadius: 95, backgroundColor: colors.goldSoft },
@@ -196,4 +202,4 @@ const styles = StyleSheet.create({
   dotFill: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.gold },
   dayLabel: { fontFamily: fonts.ui, fontSize: 12, color: colors.faint },
   footer: { width: '100%', maxWidth: 420, alignSelf: 'center' },
-});
+}));

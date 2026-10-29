@@ -1,13 +1,14 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { topicLabel, type Topic } from '@/data/content';
 import { haptic } from '@/lib/feedback';
 import { isDemo, loadPlans, purchase, restorePurchases, STORE, usePlans, type Plan } from '@/lib/purchases';
 import type { PaywallReason } from '@/lib/upsell';
 import { FREE_DAILY_CARDS, FREE_SAVES, useApp } from '@/store/app-store';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts } from '@/theme/tokens';
 
 import { Icon } from './icon';
 import { PrimaryButton } from './primary-button';
@@ -53,6 +54,8 @@ type Props = {
 
 /** What Plus gives, the two plans and the button. Used by the paywall screen and the end of the free feed. */
 export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
+  const colors = useColors();
+  const styles = useStyles();
   const [plan, setPlan] = useState<Plan>('yearly');
   const plans = usePlans();
   const offered = (Object.keys(plans) as Plan[]).filter((id) => plans[id]);
@@ -151,8 +154,8 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  title: { fontFamily: fonts.read, fontSize: 30, lineHeight: 38, color: colors.text },
+const useStyles = makeStyles((colors) => ({
+  title: { fontFamily: fonts.read, fontSize: 28, lineHeight: 36, color: colors.text },
   titleCompact: { fontSize: 25, lineHeight: 32 },
   body: { fontFamily: fonts.read, fontSize: 17, lineHeight: 25, color: colors.read, marginTop: 8 },
   benefits: { marginTop: 26, gap: 13 },
@@ -182,4 +185,4 @@ const styles = StyleSheet.create({
   fine: { fontFamily: fonts.ui, fontSize: 12, lineHeight: 17, color: colors.faint, textAlign: 'center', marginTop: 12 },
   links: { flexDirection: 'row', justifyContent: 'center', gap: 20, marginTop: 10 },
   link: { fontFamily: fonts.ui, fontSize: 12.5, color: colors.quiet, textDecorationLine: 'underline' },
-});
+}));

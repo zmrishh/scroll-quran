@@ -25,12 +25,19 @@ import {
   type ArabicSize,
   type Display,
 } from '@/store/app-store';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors, type AppearancePref } from '@/theme/theme';
+import { fonts, layout } from '@/theme/tokens';
 
 const DISPLAY_OPTIONS: { id: Display; label: string }[] = [
   { id: 'both', label: 'Both' },
   { id: 'arabic', label: 'Arabic' },
   { id: 'english', label: 'English' },
+];
+
+const APPEARANCE_OPTIONS: { id: AppearancePref; label: string }[] = [
+  { id: 'light', label: 'Light' },
+  { id: 'dark', label: 'Dark' },
+  { id: 'system', label: 'Auto' },
 ];
 
 const SIZE_OPTIONS: { id: ArabicSize; label: string }[] = [
@@ -46,6 +53,8 @@ const PROVIDERS = { apple: 'Apple', google: 'Google', test: 'a test account' };
 const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 export default function YouScreen() {
+  const colors = useColors();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const s = useApp();
   const look = useCardStyle();
@@ -172,6 +181,10 @@ export default function YouScreen() {
             <Text style={styles.settingLabel}>Arabic size</Text>
             <Segmented value={s.arabicSize} options={SIZE_OPTIONS} onChange={(arabicSize) => s.set({ arabicSize })} />
           </View>
+          <View style={[styles.setting, styles.divider]}>
+            <Text style={styles.settingLabel}>Appearance</Text>
+            <Segmented value={s.appearance} options={APPEARANCE_OPTIONS} onChange={(appearance) => s.set({ appearance })} />
+          </View>
           <View style={[styles.switchRow, styles.divider]}>
             <Text style={styles.rowLabel}>Vibration</Text>
             <Switch
@@ -256,6 +269,8 @@ export default function YouScreen() {
 type RowProps = { label: string; detail?: string; onPress: () => void; divider?: boolean; danger?: boolean };
 
 function Row({ label, detail, onPress, divider, danger }: RowProps) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.row, divider && styles.divider, pressed && { opacity: 0.6 }]}>
       <Text style={[styles.rowLabel, danger && { color: colors.wrong }]}>{label}</Text>
@@ -265,11 +280,11 @@ function Row({ label, detail, onPress, divider, danger }: RowProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.page },
-  content: { paddingHorizontal: 20, paddingBottom: 40, maxWidth: 600, width: '100%', alignSelf: 'center' },
-  salam: { fontFamily: fonts.arabic, fontSize: 18, lineHeight: 32, color: colors.gold, paddingHorizontal: 8, textAlign: 'left' },
-  title: { fontFamily: fonts.read, fontSize: 32, color: colors.text, paddingHorizontal: 8, marginBottom: 18 },
+  content: { paddingHorizontal: layout.gutter, paddingBottom: 40, maxWidth: 600, width: '100%', alignSelf: 'center' },
+  salam: { fontFamily: fonts.arabic, fontSize: 18, lineHeight: 32, color: colors.gold, textAlign: 'left' },
+  title: { fontFamily: fonts.read, fontSize: 32, color: colors.text, marginBottom: layout.gap },
   streak: { paddingBottom: 16 },
   streakTop: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   streakNumber: { fontFamily: fonts.read, fontSize: 52, lineHeight: 60, color: colors.gold },
@@ -310,4 +325,4 @@ const styles = StyleSheet.create({
   account: { paddingVertical: 14 },
   accountName: { fontFamily: fonts.uiMedium, fontSize: 16, color: colors.text },
   accountNote: { fontFamily: fonts.ui, fontSize: 13, color: colors.quiet, marginTop: 2 },
-});
+}));

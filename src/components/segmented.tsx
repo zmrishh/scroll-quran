@@ -1,12 +1,14 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { haptic } from '@/lib/feedback';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles } from '@/theme/theme';
+import { fonts, layout } from '@/theme/tokens';
 
 type Props<T extends string> = { value: T; options: readonly { id: T; label: string }[]; onChange: (v: T) => void };
 
 /** A small segmented control: a sunken track with the chosen option lit in gold. */
 export function Segmented<T extends string>({ value, options, onChange }: Props<T>) {
+  const styles = useStyles();
   return (
     <View style={styles.track}>
       {options.map((o) => {
@@ -32,10 +34,10 @@ export function Segmented<T extends string>({ value, options, onChange }: Props<
   );
 }
 
-const styles = StyleSheet.create({
-  track: { flexDirection: 'row', backgroundColor: colors.page, borderRadius: 11, padding: 3 },
+const useStyles = makeStyles((colors) => ({
+  track: { flexDirection: 'row', backgroundColor: colors.page, borderRadius: layout.radius.md, padding: 3 },
   seg: { flex: 1, height: 34, borderRadius: 8, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
   segOn: { backgroundColor: colors.goldSoft },
   label: { fontFamily: fonts.uiMedium, fontSize: 14, color: colors.quiet },
   labelOn: { color: colors.gold },
-});
+}));

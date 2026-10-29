@@ -1,22 +1,25 @@
-import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CardStyleLayer, useCardStyle } from '@/components/card-style';
 import { Icon } from '@/components/icon';
+import { CloseButton } from '@/components/ui';
 import { PASSAGES } from '@/data/content';
 import { ALL_STYLES_PRODUCT, CARD_STYLES, ownsStyle, type CardStyle } from '@/data/styles';
 import { haptic } from '@/lib/feedback';
 import { buyStyle, isDemo, loadStylePrices, restorePurchases, useStylePrices } from '@/lib/purchases';
 import { useApp } from '@/store/app-store';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts, layout } from '@/theme/tokens';
 
 const SAMPLE = PASSAGES.find((p) => p.id === '94:5-6')!.ayat[0];
 const PAID = CARD_STYLES.filter((s) => s.product);
 const TILE_HEIGHT = 230;
 
 export default function Styles() {
+  const colors = useColors();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const inUse = useCardStyle();
   const owned = useApp((s) => s.ownedStyles);
@@ -49,9 +52,7 @@ export default function Styles() {
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 40 }]}>
         <View style={styles.header}>
           <Text style={styles.title}>Card styles</Text>
-          <Pressable accessibilityLabel="Close" hitSlop={12} onPress={() => router.back()} style={styles.close}>
-            <Icon name="x" size={18} color={colors.read} strokeWidth={2.4} />
-          </Pressable>
+          <CloseButton />
         </View>
         <Text style={styles.sub}>Illumination from Quran manuscripts at The Met, on every card you read and share.</Text>
 
@@ -111,13 +112,12 @@ export default function Styles() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.page },
-  content: { paddingHorizontal: 20, maxWidth: 640, width: '100%', alignSelf: 'center' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },
+  content: { paddingHorizontal: layout.gutter, maxWidth: 640, width: '100%', alignSelf: 'center' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontFamily: fonts.read, fontSize: 32, color: colors.text },
-  close: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  sub: { fontFamily: fonts.ui, fontSize: 14.5, lineHeight: 21, color: colors.quiet, marginTop: 6, paddingHorizontal: 4 },
+  sub: { fontFamily: fonts.ui, fontSize: 14.5, lineHeight: 21, color: colors.quiet, marginTop: 6 },
   bundle: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -152,4 +152,4 @@ const styles = StyleSheet.create({
   restore: { alignSelf: 'center', marginTop: 26 },
   restoreText: { fontFamily: fonts.ui, fontSize: 13, color: colors.quiet, textDecorationLine: 'underline' },
   demo: { fontFamily: fonts.ui, fontSize: 12, color: colors.faint, textAlign: 'center', marginTop: 8 },
-});
+}));

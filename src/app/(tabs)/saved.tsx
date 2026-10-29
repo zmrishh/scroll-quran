@@ -11,7 +11,8 @@ import { lookup } from '@/data/content';
 import { haptic } from '@/lib/feedback';
 import { openPaywall } from '@/lib/upsell';
 import { FREE_SAVES, useApp } from '@/store/app-store';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts, layout } from '@/theme/tokens';
 
 const FILTERS = [
   { id: 'all', label: 'All' },
@@ -25,6 +26,7 @@ const FILTERS = [
 type Filter = (typeof FILTERS)[number]['id'];
 
 export default function SavedScreen() {
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const saved = useApp((s) => s.saved);
   const notes = useApp((s) => s.notes);
@@ -105,6 +107,8 @@ export default function SavedScreen() {
 }
 
 function Empty() {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <Surface style={styles.empty}>
       <View style={styles.emptyIcons}>
@@ -120,18 +124,18 @@ function Empty() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.page },
-  content: { paddingHorizontal: 20, paddingBottom: 30, maxWidth: 600, width: '100%', alignSelf: 'center' },
-  header: { marginBottom: 16, paddingHorizontal: 8 },
+  content: { paddingHorizontal: layout.gutter, paddingBottom: 30, maxWidth: 600, width: '100%', alignSelf: 'center' },
+  header: { marginBottom: layout.gap },
   title: { fontFamily: fonts.read, fontSize: 32, color: colors.text },
   summary: { fontFamily: fonts.ui, fontSize: 14, color: colors.quiet, marginTop: 4 },
   meter: { marginTop: 18 },
   meterTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
   meterText: { fontFamily: fonts.ui, fontSize: 13, color: colors.read },
   meterLink: { fontFamily: fonts.uiMedium, fontSize: 13, color: colors.gold },
-  pillsWrap: { marginTop: 18, marginHorizontal: -8 },
-  pills: { gap: 8, paddingHorizontal: 8 },
+  pillsWrap: { marginTop: 18, marginHorizontal: -layout.gutter },
+  pills: { gap: 8, paddingHorizontal: layout.gutter },
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -151,4 +155,4 @@ const styles = StyleSheet.create({
   emptyIcons: { flexDirection: 'row', gap: 12, marginBottom: 14 },
   emptyTitle: { fontFamily: fonts.read, fontSize: 20, lineHeight: 27, color: colors.text },
   emptyBody: { fontFamily: fonts.ui, fontSize: 14.5, lineHeight: 21, color: colors.quiet, marginTop: 6 },
-});
+}));

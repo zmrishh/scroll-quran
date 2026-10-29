@@ -5,6 +5,7 @@ import { createJSONStorage, persist, type StateStorage } from 'zustand/middlewar
 import type { Topic } from '@/data/content';
 import type { CardStyleId } from '@/data/styles';
 import type { AsrSchool, MethodId } from '@/lib/prayer';
+import type { AppearancePref } from '@/theme/theme';
 
 import { useCelebration } from './celebration';
 
@@ -53,6 +54,7 @@ type State = {
   /** Calculation method; null means the usual one for the phone's region. */
   prayerMethod: MethodId | null;
   asrSchool: AsrSchool;
+  appearance: AppearancePref;
   /** Store product IDs of card styles bought. With RevenueCat set up, refreshed from it. */
   ownedStyles: string[];
   totals: Totals;
@@ -105,6 +107,7 @@ type Actions = {
         | 'prayerPlace'
         | 'prayerMethod'
         | 'asrSchool'
+        | 'appearance'
       >
     >,
   ) => void;
@@ -153,6 +156,7 @@ const initial: State = {
   prayerPlace: null,
   prayerMethod: null,
   asrSchool: 'standard',
+  appearance: 'light',
   ownedStyles: [],
   totals: { views: 0, dhikr: 0, quizAnswered: 0, quizCorrect: 0, memorised: 0, ameen: 0 },
   hintSeen: false,

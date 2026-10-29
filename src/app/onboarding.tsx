@@ -1,5 +1,4 @@
 import { router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { Easing, FadeIn, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -12,7 +11,8 @@ import type { ArtKey } from '@/data/art';
 import { PASSAGES, passageEnglish, passageRef, TOPICS, topicLabel, type Topic } from '@/data/content';
 import { haptic } from '@/lib/feedback';
 import { DAILY_GOALS, useApp } from '@/store/app-store';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { eyebrow, fonts, layout } from '@/theme/tokens';
 
 type Step = 'welcome' | 'why' | 'topics' | 'goal' | 'building' | 'plan';
 const QUESTIONS: Step[] = ['why', 'topics', 'goal'];
@@ -33,6 +33,8 @@ const joinNames = (names: string[]) =>
   names.length <= 1 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 
 export default function Onboarding() {
+  const colors = useColors();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
   const [step, setStep] = useState<Step>('welcome');
@@ -60,7 +62,6 @@ export default function Onboarding() {
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="light" />
       <ArtPanel
         art={ART_FOR[step]}
         fade={fullBleed ? 'deep' : 'edge'}
@@ -173,6 +174,8 @@ export default function Onboarding() {
 
 /** A choice set like a line of a printed list: the words carry it, a gold mark shows it's chosen. */
 function Line({ label, on, onPress }: { label: string; on: boolean; onPress: () => void }) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <Pressable
       accessibilityRole="checkbox"
@@ -192,6 +195,7 @@ const BUILD_MS = 3400;
 
 /** A short pause over the art while the feed is put together, then on to the plan by itself. */
 function Building({ onDone }: { onDone: () => void }) {
+  const styles = useStyles();
   const fill = useSharedValue(0);
   useEffect(() => {
     fill.set(withTiming(1, { duration: BUILD_MS, easing: Easing.inOut(Easing.quad) }));
@@ -218,6 +222,7 @@ function Building({ onDone }: { onDone: () => void }) {
 }
 
 function Plan({ topics, goal }: { topics: Topic[]; goal: number }) {
+  const styles = useStyles();
   // A short ayah from their first topic, as a first taste of the feed.
   const first =
     PASSAGES.find((p) => p.topics.includes(topics[0]) && p.ayat.length === 1 && passageEnglish(p).length < 130) ??
@@ -240,7 +245,7 @@ function Plan({ topics, goal }: { topics: Topic[]; goal: number }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.page },
   flex: { flex: 1 },
   topBar: { position: 'absolute', left: 16, right: 24, flexDirection: 'row', alignItems: 'center', gap: 14, zIndex: 2 },
@@ -248,16 +253,16 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: 'rgba(12,21,18,0.55)',
+    backgroundColor: `rgba(${colors.pageRgb},0.55)`,
     alignItems: 'center',
     justifyContent: 'center',
   },
   progress: { flex: 1, flexDirection: 'row', gap: 6 },
-  progressPart: { flex: 1, height: 2, borderRadius: 1, backgroundColor: 'rgba(243,235,216,0.25)' },
+  progressPart: { flex: 1, height: 2, borderRadius: 1, backgroundColor: `rgba(${colors.textRgb},0.25)` },
   progressOn: { backgroundColor: colors.gold },
-  body: { flex: 1, paddingHorizontal: 28, paddingTop: 6, width: '100%', maxWidth: 600, alignSelf: 'center' },
+  body: { flex: 1, paddingHorizontal: layout.gutter, paddingTop: 6, width: '100%', maxWidth: 600, alignSelf: 'center' },
   bodyBottom: { justifyContent: 'flex-end' },
-  brand: { fontFamily: fonts.uiMedium, fontSize: 13, letterSpacing: 1.2, color: colors.gold, textTransform: 'uppercase' },
+  brand: { ...eyebrow, color: colors.gold },
   display: { fontFamily: fonts.read, fontSize: 38, lineHeight: 46, color: colors.text, marginTop: 10 },
   h1: { fontFamily: fonts.read, fontSize: 28, lineHeight: 36, color: colors.text },
   list: { marginTop: 14 },
@@ -284,13 +289,13 @@ const styles = StyleSheet.create({
   goalTime: { fontFamily: fonts.ui, fontSize: 13, color: colors.faint, marginTop: 4, marginBottom: 12 },
   hadith: { fontFamily: fonts.readItalic, fontSize: 19, lineHeight: 28, color: colors.read, marginTop: 14 },
   hadithSource: { fontFamily: fonts.ui, fontSize: 12.5, color: colors.quiet, marginTop: 10 },
-  track: { height: 2, borderRadius: 1, backgroundColor: 'rgba(243,235,216,0.2)', marginTop: 28, overflow: 'hidden' },
+  track: { height: 2, borderRadius: 1, backgroundColor: `rgba(${colors.textRgb},0.2)`, marginTop: 28, overflow: 'hidden' },
   trackFill: { height: 2, backgroundColor: colors.gold },
-  eyebrow: { fontFamily: fonts.uiMedium, fontSize: 13, letterSpacing: 1.2, color: colors.gold, textTransform: 'uppercase' },
+  eyebrow: { ...eyebrow, color: colors.gold },
   planLine: { fontFamily: fonts.read, fontSize: 28, lineHeight: 38, color: colors.read, marginTop: 10 },
   planEm: { color: colors.text },
   verse: { marginTop: 26, paddingTop: 20, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.line, marginBottom: 16 },
   verseArabic: { fontFamily: fonts.quran, fontSize: 26, lineHeight: 52, color: colors.text, textAlign: 'right', writingDirection: 'rtl' },
   verseEnglish: { fontFamily: fonts.read, fontSize: 17, lineHeight: 26, color: colors.read, marginTop: 6 },
   verseRef: { fontFamily: fonts.ui, fontSize: 12.5, color: colors.quiet, marginTop: 8 },
-});
+}));

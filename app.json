@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "scrollquran",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.scrollquran.app",
@@ -90,9 +90,13 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0C1512",
+          "backgroundColor": "#F6F1E6",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 110
+          "imageWidth": 110,
+          "dark": {
+            "image": "./assets/images/splash-icon.png",
+            "backgroundColor": "#0C1512"
+          }
         }
       ],
       "expo-sharing",
@@ -110,6 +114,6 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "backgroundColor": "#0C1512"
+    "backgroundColor": "#F6F1E6"
   }
 }

@@ -6,7 +6,8 @@ import { Segmented } from '@/components/segmented';
 import { haptic } from '@/lib/feedback';
 import { locate, METHODS, methodName, regionalMethod, type AsrSchool, type MethodId } from '@/lib/prayer';
 import { useApp } from '@/store/app-store';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts } from '@/theme/tokens';
 
 const ASR_OPTIONS: { id: AsrSchool; label: string }[] = [
   { id: 'standard', label: 'Standard' },
@@ -15,6 +16,8 @@ const ASR_OPTIONS: { id: AsrSchool; label: string }[] = [
 
 /** How prayer times are worked out: the calculation method, the Asr school, and refreshing the place. */
 export default function PrayerTimesSettings() {
+  const colors = useColors();
+  const styles = useStyles();
   const chosen = useApp((s) => s.prayerMethod);
   const asr = useApp((s) => s.asrSchool);
   const regional = regionalMethod();
@@ -54,6 +57,8 @@ export default function PrayerTimesSettings() {
 }
 
 function Option({ label, detail, on, onPress }: { label: string; detail?: string; on: boolean; onPress: () => void }) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <Pressable accessibilityRole="radio" accessibilityState={{ checked: on }} onPress={onPress} style={({ pressed }) => [styles.option, pressed && { opacity: 0.6 }]}>
       <View style={{ flex: 1 }}>
@@ -65,7 +70,7 @@ function Option({ label, detail, on, onPress }: { label: string; detail?: string
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   segment: { marginTop: 4 },
   list: { marginTop: 2 },
   option: {
@@ -81,4 +86,4 @@ const styles = StyleSheet.create({
   radioOn: { backgroundColor: colors.gold, borderColor: colors.gold },
   update: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 24 },
   updateText: { fontFamily: fonts.uiMedium, fontSize: 15, color: colors.text },
-});
+}));

@@ -1,16 +1,19 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { passageEnglish, passageRef } from '@/data/content';
 import type { Quiz } from '@/feed/engine';
 import { haptic } from '@/lib/feedback';
 import { useApp } from '@/store/app-store';
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts, layout } from '@/theme/tokens';
 
 import { Icon } from '../icon';
 
 export function QuizCard({ quiz }: { quiz: Quiz }) {
+  const colors = useColors();
+  const styles = useStyles();
   const [choice, setChoice] = useState<string | null>(null);
   const answerQuiz = useApp((s) => s.answerQuiz);
   const answered = choice !== null;
@@ -65,7 +68,7 @@ export function QuizCard({ quiz }: { quiz: Quiz }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   question: { fontFamily: fonts.uiMedium, fontSize: 24, lineHeight: 30, letterSpacing: -0.3, color: colors.text },
   quote: { fontFamily: fonts.read, fontSize: 17, lineHeight: 26, color: colors.read, marginTop: 16 },
   options: { gap: 10, marginTop: 28 },
@@ -74,11 +77,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: 52,
-    borderRadius: 12,
+    borderRadius: layout.radius.md,
     borderWidth: 1,
     borderColor: colors.line,
     paddingHorizontal: 16,
   },
   optionText: { fontFamily: fonts.uiMedium, fontSize: 16, color: colors.text },
   result: { fontFamily: fonts.ui, fontSize: 14, color: colors.quiet, marginTop: 18 },
-});
+}));

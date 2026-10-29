@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts, layout } from '@/theme/tokens';
 
 import { CardStyleLayer, useCardStyle } from './card-style';
 import { Icon } from './icon';
@@ -36,6 +37,8 @@ type Props = {
 
 /** A full-screen black page with its content centred and always fitting. */
 export function CardFrame({ height, contentTop, contentBottom, onDoubleTap, onSingleTap, shotRef, seed, watermark, children, overlay }: Props) {
+  const colors = useColors();
+  const styles = useStyles();
   const { width } = useWindowDimensions();
   const look = useCardStyle();
   const lastTap = useRef(0);
@@ -96,6 +99,7 @@ export function CardFrame({ height, contentTop, contentBottom, onDoubleTap, onSi
 
 /** Centres its children and scales them down (never up) when a passage is too long to fit. */
 function FitBox({ children }: { children: ReactNode }) {
+  const styles = useStyles();
   const [box, setBox] = useState(0);
   const [natural, setNatural] = useState(0);
   const scale = box && natural > box ? Math.max(0.6, box / natural) : 1;
@@ -108,10 +112,10 @@ function FitBox({ children }: { children: ReactNode }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: { backgroundColor: colors.page, overflow: 'hidden' },
-  content: { flex: 1, paddingHorizontal: 28 },
+  content: { flex: 1, paddingHorizontal: layout.gutter },
   fitOuter: { flex: 1, justifyContent: 'center' },
   burst: { position: 'absolute', width: 96, height: 96 },
   watermark: { position: 'absolute', left: 28, top: 28, fontFamily: fonts.uiMedium, fontSize: 14, color: colors.quiet },
-});
+}));

@@ -1,23 +1,23 @@
-import { router } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts, layout } from '@/theme/tokens';
 
 import { Icon } from './icon';
+import { CloseButton } from './ui';
 
 /** A text page inside the app (Sources, Privacy, Terms): a title, a close button, then sections. */
 export function DocScreen({ title, meta, children }: { title: string; meta?: string; children: ReactNode }) {
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40 }]}>
         <View style={styles.header}>
           <Text style={styles.title}>{title}</Text>
-          <Pressable accessibilityLabel="Close" hitSlop={12} onPress={() => router.back()} style={styles.close}>
-            <Icon name="x" size={18} color={colors.read} strokeWidth={2.4} />
-          </Pressable>
+          <CloseButton />
         </View>
         {meta && <Text style={styles.meta}>{meta}</Text>}
         {children}
@@ -27,6 +27,7 @@ export function DocScreen({ title, meta, children }: { title: string; meta?: str
 }
 
 export function Block({ title, children }: { title: string; children: ReactNode }) {
+  const styles = useStyles();
   return (
     <View style={styles.block}>
       <Text style={styles.blockTitle}>{title}</Text>
@@ -37,10 +38,12 @@ export function Block({ title, children }: { title: string; children: ReactNode 
 
 /** A paragraph inside a Block, for sections with more than one. */
 export function Para({ children }: { children: ReactNode }) {
+  const styles = useStyles();
   return <Text style={[styles.body, styles.para]}>{children}</Text>;
 }
 
 export function Bullets({ items }: { items: string[] }) {
+  const styles = useStyles();
   return (
     <View style={styles.bullets}>
       {items.map((item) => (
@@ -55,6 +58,8 @@ export function Bullets({ items }: { items: string[] }) {
 
 /** A tappable line under a section, for a page or address that goes with it. */
 export function DocLink({ label, onPress }: { label: string; onPress: () => void }) {
+  const colors = useColors();
+  const styles = useStyles();
   return (
     <Pressable onPress={onPress} style={styles.link}>
       <Text style={styles.linkText}>{label}</Text>
@@ -63,12 +68,11 @@ export function DocLink({ label, onPress }: { label: string; onPress: () => void
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.page },
-  content: { paddingHorizontal: 28, paddingTop: 26, maxWidth: 560, width: '100%', alignSelf: 'center' },
+  content: { paddingHorizontal: layout.gutter, paddingTop: 26, maxWidth: 560, width: '100%', alignSelf: 'center' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontFamily: fonts.read, fontSize: 32, color: colors.text },
-  close: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   meta: { fontFamily: fonts.ui, fontSize: 13, color: colors.quiet, marginTop: 6 },
   block: { marginTop: 24 },
   blockTitle: { fontFamily: fonts.uiMedium, fontSize: 16, color: colors.text, marginBottom: 6 },
@@ -79,4 +83,4 @@ const styles = StyleSheet.create({
   dot: { fontFamily: fonts.read, fontSize: 15.5, lineHeight: 24, color: colors.gold },
   link: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 10 },
   linkText: { fontFamily: fonts.uiMedium, fontSize: 15, color: colors.text },
-});
+}));

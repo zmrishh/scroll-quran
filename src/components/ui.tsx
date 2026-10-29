@@ -1,16 +1,33 @@
+import { router } from 'expo-router';
 import type { ReactNode } from 'react';
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
-import { colors, fonts } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+import { fonts, layout } from '@/theme/tokens';
+
+import { Icon } from './icon';
 
 /** A raised panel on the page: one step lighter, a hairline edge, generous radius. */
 export function Surface({ children, style, accent }: { children: ReactNode; style?: StyleProp<ViewStyle>; accent?: boolean }) {
+  const styles = useStyles();
   return <View style={[styles.surface, accent && styles.accent, style]}>{children}</View>;
+}
+
+/** The close button of every modal screen, so they all look and behave the same. */
+export function CloseButton({ style }: { style?: StyleProp<ViewStyle> }) {
+  const colors = useColors();
+  const styles = useStyles();
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel="Close" hitSlop={12} onPress={() => router.back()} style={[styles.close, style]}>
+      <Icon name="x" size={20} color={colors.quiet} strokeWidth={2.2} />
+    </Pressable>
+  );
 }
 
 /** A small heading above a group, with an optional detail on the right. */
 export function SectionHeader({ title, detail }: { title: string; detail?: string }) {
+  const styles = useStyles();
   return (
     <View style={styles.header}>
       <Text style={styles.headerTitle}>{title}</Text>
@@ -21,6 +38,7 @@ export function SectionHeader({ title, detail }: { title: string; detail?: strin
 
 /** A thin progress ring with its value drawn in the middle by the caller. */
 export function Ring({ size, progress, children }: { size: number; progress: number; children?: ReactNode }) {
+  const colors = useColors();
   const stroke = 4;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
@@ -47,6 +65,7 @@ export function Ring({ size, progress, children }: { size: number; progress: num
 
 /** A short horizontal progress bar. */
 export function Bar({ progress, style }: { progress: number; style?: StyleProp<ViewStyle> }) {
+  const styles = useStyles();
   return (
     <View style={[styles.track, style]}>
       <View style={[styles.fill, { width: `${Math.min(100, Math.max(0, progress * 100))}%` }]} />
@@ -65,10 +84,11 @@ export function timeAgo(at: number) {
   return days < 14 ? `${days}d` : `${Math.floor(days / 7)}w`;
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
+  close: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   surface: {
     backgroundColor: colors.raised,
-    borderRadius: 18,
+    borderRadius: layout.radius.lg,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.line,
     padding: 18,
@@ -79,4 +99,4 @@ const styles = StyleSheet.create({
   headerDetail: { fontFamily: fonts.ui, fontSize: 13, color: colors.quiet },
   track: { height: 4, borderRadius: 2, backgroundColor: colors.line, overflow: 'hidden' },
   fill: { height: '100%', borderRadius: 2, backgroundColor: colors.gold },
-});
+}));

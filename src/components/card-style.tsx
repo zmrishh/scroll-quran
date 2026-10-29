@@ -7,7 +7,8 @@ import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTim
 import { ART, GLOW } from '@/data/art';
 import { cardStyle, ownsStyle, type CardStyleId } from '@/data/styles';
 import { useApp } from '@/store/app-store';
-import { colors } from '@/theme/tokens';
+import { makeStyles, useColors } from '@/theme/theme';
+
 
 type Props = {
   style: CardStyleId;
@@ -25,6 +26,8 @@ type Props = {
  * between them.
  */
 export function CardStyleLayer({ style, height, contentTop, contentBottom, seed = '' }: Props) {
+  const colors = useColors();
+  const styles = useStyles();
   const s = cardStyle(style);
   if (s.id === 'glow') return <GlowLayer seed={seed} />;
   if (!s.art) return null;
@@ -37,14 +40,14 @@ export function CardStyleLayer({ style, height, contentTop, contentBottom, seed 
       <View style={[styles.head, { height: top }]}>
         <Image source={art.source} contentFit="cover" contentPosition={s.focus} style={StyleSheet.absoluteFill} accessible={false} />
         <LinearGradient
-          colors={['rgba(12,21,18,0.35)', 'rgba(12,21,18,0)', colors.page]}
+          colors={[`rgba(${colors.pageRgb},0.35)`, `rgba(${colors.pageRgb},0)`, colors.page]}
           locations={[0, 0.3, 1]}
           style={StyleSheet.absoluteFill}
         />
       </View>
       <View style={[styles.foot, { height: bottom }]}>
         <Image source={art.source} contentFit="cover" contentPosition="bottom" style={StyleSheet.absoluteFill} accessible={false} />
-        <LinearGradient colors={[colors.page, 'rgba(12,21,18,0.55)']} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={[colors.page, `rgba(${colors.pageRgb},0.55)`]} style={StyleSheet.absoluteFill} />
       </View>
       <View style={[styles.rule, { top: top - 14, bottom: bottom - 6, borderColor: s.rule }]}>
         <View style={[styles.ruleInner, { borderColor: s.rule }]} />
@@ -60,8 +63,13 @@ function pick(seed: string, n: number) {
   return Math.abs(h) % n;
 }
 
+// On paper the veil is heavier: dark manuscript pages under a light veil turn grey, so light mode keeps only a tint.
+const VEIL = { dark: [0.5, 0.78, 0.78, 0.6], light: [0.74, 0.9, 0.9, 0.78] };
+
 /** A blurred manuscript page drifting very slowly behind the card, dimmed most where the verse sits. */
 function GlowLayer({ seed }: { seed: string }) {
+  const colors = useColors();
+  const styles = useStyles();
   const drift = useSharedValue(0);
   useEffect(() => {
     drift.set(withRepeat(withTiming(1, { duration: 18000, easing: Easing.inOut(Easing.sin) }), -1, true));
@@ -74,7 +82,7 @@ function GlowLayer({ seed }: { seed: string }) {
         <Image source={GLOW[pick(seed, GLOW.length)]} contentFit="cover" style={StyleSheet.absoluteFill} accessible={false} />
       </Animated.View>
       <LinearGradient
-        colors={['rgba(12,21,18,0.5)', 'rgba(12,21,18,0.78)', 'rgba(12,21,18,0.78)', 'rgba(12,21,18,0.6)']}
+        colors={VEIL[colors.scheme].map((a) => `rgba(${colors.pageRgb},${a})`) as [string, string, string, string]}
         locations={[0, 0.3, 0.7, 1]}
         style={StyleSheet.absoluteFill}
       />
@@ -87,10 +95,10 @@ export function useCardStyle(): CardStyleId {
   return useApp((s) => (ownsStyle(cardStyle(s.cardStyle), s.ownedStyles) ? s.cardStyle : 'glow'));
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   glow: { overflow: 'hidden', backgroundColor: colors.page },
   head: { position: 'absolute', left: 0, right: 0, top: 0, overflow: 'hidden' },
   foot: { position: 'absolute', left: 0, right: 0, bottom: 0, overflow: 'hidden' },
   rule: { position: 'absolute', left: 12, right: 12, borderWidth: 1, borderRadius: 2, opacity: 0.55 },
   ruleInner: { position: 'absolute', top: 3, left: 3, right: 3, bottom: 3, borderWidth: StyleSheet.hairlineWidth },
-});
+}));
