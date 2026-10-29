@@ -25,7 +25,9 @@ Apple combines the name, subtitle and keywords, so the keyword field does not re
 
 Use this exact sentence on the website, in both store descriptions, and in social bios. Search engines and AI assistants pick up a description that is repeated consistently.
 
-> Scroll Quran is a short-form Quran app for iPhone and Android: swipe through Quran verses in Arabic and English, duas from the Quran, the Names of Allah and dhikr, one card at a time.
+> Scroll Quran is a short-form Quran app: swipe through Quran verses in Arabic and English, duas from the Quran, the Names of Allah and dhikr, one card at a time.
+
+Keep store descriptions to their own platform: Apple rejects App Store text that mentions Android or Google Play (guideline 2.3.10).
 
 ## Questions the website should answer
 

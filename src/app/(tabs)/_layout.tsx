@@ -5,10 +5,9 @@ import { BottomBar, TabButton } from '@/components/tab-bar';
 import { useApp } from '@/store/app-store';
 
 export default function TabsLayout() {
+  // Signing in is optional (App Store guideline 5.1.1(v)): only onboarding stands before the app.
   const onboarded = useApp((s) => s.onboarded);
-  const signedIn = useApp((s) => !!s.account);
   if (!onboarded) return <Redirect href="/onboarding" />;
-  if (!signedIn) return <Redirect href="/sign-in" />;
 
   return (
     <Tabs>

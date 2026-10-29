@@ -112,7 +112,7 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
                 </View>
                 <Text style={styles.planNote}>{p.note}</Text>
               </View>
-              <Text style={[styles.planPrice, on && { color: colors.text }]}>{p.price}</Text>
+              <Text style={[styles.planPrice, on && { color: colors.text }]}>{p.price || '…'}</Text>
             </Pressable>
           );
         })}

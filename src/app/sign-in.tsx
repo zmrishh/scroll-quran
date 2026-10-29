@@ -26,6 +26,18 @@ export default function SignIn() {
     availableProviders().then(setProviders);
   }, []);
 
+  // After onboarding, on to the feed and Plus; from the You tab, back to where they were.
+  const leave = () => {
+    if (fromOnboarding) {
+      router.replace('/');
+      setTimeout(() => router.push('/paywall'), 450);
+    } else if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/');
+    }
+  };
+
   const run = async (signIn: () => Promise<Account | null>) => {
     if (busy) return;
     setBusy(true);
@@ -33,9 +45,7 @@ export default function SignIn() {
     setBusy(false);
     if (!account) return;
     haptic.success();
-    router.replace('/');
-    // A new account goes on to Plus; someone signing back in goes straight to their feed.
-    if (fromOnboarding) setTimeout(() => router.push('/paywall'), 450);
+    leave();
   };
 
   return (
@@ -45,7 +55,7 @@ export default function SignIn() {
       <View style={styles.inner}>
         <Animated.View entering={FadeInDown.delay(200).duration(500)}>
           <Text style={styles.brand}>Scroll Quran</Text>
-          <Text style={styles.h1}>{fromOnboarding ? 'Save your plan' : 'Welcome back'}</Text>
+          <Text style={styles.h1}>{fromOnboarding ? 'Save your plan' : 'Sign in'}</Text>
 
           <View style={[styles.buttons, busy && { opacity: 0.6 }]} pointerEvents={busy ? 'none' : 'auto'}>
             {providers?.apple && (
@@ -60,6 +70,10 @@ export default function SignIn() {
             {providers?.google && <GoogleButton onPress={() => run(signInWithGoogle)} />}
             {providers?.test && <PrimaryButton tone="quiet" label="Continue as test user (development)" onPress={() => run(signInForTesting)} />}
           </View>
+
+          <Pressable hitSlop={10} onPress={leave} style={styles.skip} accessibilityRole="button">
+            <Text style={styles.skipText}>Not now</Text>
+          </Pressable>
 
           <Text style={styles.legal}>
             By continuing you agree to the{' '}
@@ -116,6 +130,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   googleText: { fontFamily: fonts.uiMedium, fontSize: 17, color: '#1F1F1F' },
+  skip: { alignSelf: 'center', marginTop: 16, paddingVertical: 4 },
+  skipText: { fontFamily: fonts.uiMedium, fontSize: 15, color: colors.read },
   legal: { fontFamily: fonts.ui, fontSize: 12.5, lineHeight: 18, color: colors.faint, textAlign: 'center', marginTop: 16 },
   legalLink: { color: colors.quiet, textDecorationLine: 'underline' },
 });

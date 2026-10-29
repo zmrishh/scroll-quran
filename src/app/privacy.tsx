@@ -1,21 +1,26 @@
-import { Linking } from 'react-native';
+import { Linking, Platform } from 'react-native';
 
 import { Block, Bullets, DocLink, DocScreen, Para } from '@/components/doc';
 import { CONTACT_EMAIL, LINKS, openLink } from '@/lib/links';
+import { STORE } from '@/lib/purchases';
+
+// Names only the platform the app is running on (App Store guideline 2.3.10).
+const COMPANY = Platform.OS === 'android' ? 'Google' : 'Apple';
+const BACKUP = Platform.OS === 'android' ? 'Google' : 'iCloud';
 
 // Keep in step with site/privacy.html, the copy the store listings link to.
 export default function Privacy() {
   return (
     <DocScreen title="Privacy" meta="Effective 28 October 2026">
       <Block title="In short">
-        Scroll Quran has no ads, no analytics and no tracking. You sign in with Apple or Google, and what you do in the app
-        stays on your phone.
+        Scroll Quran has no ads, no analytics and no tracking. Signing in is optional, and what you do in the app stays on
+        your phone.
       </Block>
 
       <Block title="Signing in">
         <Para>
-          When you sign in with Apple or Google, they give the app an account ID and, if you allow it, your name and email
-          address. Apple lets you hide your email address.
+          If you choose to sign in with Apple or Google, they give the app an account ID and, if you allow it, your name and
+          email address. Apple lets you hide your email address.
         </Para>
         <Para>
           Your name and email address stay on your phone, where the app shows them in the You tab. The account ID is sent to
@@ -30,8 +35,8 @@ export default function Privacy() {
           Deleting the app deletes them.
         </Para>
         <Para>
-          Your phone may include this information in its own backups (iCloud or Google). Those backups are covered by
-          Apple’s or Google’s privacy policies, not ours.
+          Your phone may include this information in its own {BACKUP} backups. Those backups are covered by {COMPANY}’s
+          privacy policy, not ours.
         </Para>
       </Block>
 
@@ -42,7 +47,7 @@ export default function Privacy() {
 
       <Block title="Purchases">
         <Para>
-          Scroll Quran Plus and card styles are sold through the App Store or Google Play. Apple or Google takes the payment;
+          Scroll Quran Plus and card styles are sold through the {STORE}. {COMPANY} takes the payment;
           we never see your card details.
         </Para>
         <Para>
@@ -51,7 +56,7 @@ export default function Privacy() {
         </Para>
         <Bullets
           items={[
-            'your account ID from Apple or Google, which does not include your name or email address;',
+            'a random ID the app creates, or your account ID from Apple or Google if you’ve signed in; neither includes your name or email address;',
             'your Scroll Quran purchases and subscription status, if you have any;',
             'technical details: device type, operating system and app version, the country of your store account, and your IP address.',
           ]}
@@ -79,8 +84,8 @@ export default function Privacy() {
           items={[
             'To delete your account, open the You tab and tap Delete account. It erases everything the app stored on your phone and unlinks your purchases from your account.',
             'To stop Scroll Quran using your Apple ID: Settings → your name → Sign-In & Security → Sign in with Apple. For Google: your Google Account → Security → Your connections to third-party apps & services.',
-            'To cancel Plus, use your App Store or Google Play subscription settings. Deleting the app does not cancel it.',
-            'To have your purchase record at RevenueCat deleted, email us with your App Store or Google Play order ID and we will delete the matching record.',
+            `To cancel Plus, use your ${STORE} subscription settings. Deleting the app does not cancel it.`,
+            `To have your purchase record at RevenueCat deleted, email us with your ${STORE} order ID and we will delete the matching record.`,
           ]}
         />
       </Block>

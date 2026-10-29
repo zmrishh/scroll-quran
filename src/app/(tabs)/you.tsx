@@ -201,6 +201,15 @@ export default function YouScreen() {
           {isDemo && s.premium && <Row label="Turn off Plus (demo)" divider onPress={() => s.set({ premium: false })} />}
         </Surface>
 
+        {!s.account && (
+          <>
+            <SectionHeader title="Account" />
+            <Surface style={styles.group}>
+              <Row label="Sign in" onPress={() => router.push('/sign-in')} />
+            </Surface>
+          </>
+        )}
+
         {s.account && (
           <>
             <SectionHeader title="Account" />
