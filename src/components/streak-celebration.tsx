@@ -19,7 +19,7 @@ import { useCelebration } from '@/store/celebration';
 import { makeStyles, useColors } from '@/theme/theme';
 import { fonts, layout } from '@/theme/tokens';
 
-import { Mark } from './mark';
+import { BRAND, Logo } from './logo';
 import { PrimaryButton } from './primary-button';
 
 const BURST_AT = 250;
@@ -95,7 +95,9 @@ function Celebration({ streak }: { streak: number }) {
             <Spark key={i} index={i} progress={burst} />
           ))}
           <Animated.View style={markStyle}>
-            <Mark size={112} draw delay={120} duration={750} />
+            <View style={styles.tile}>
+              <Logo size={86} />
+            </View>
           </Animated.View>
         </View>
 
@@ -177,6 +179,8 @@ const useStyles = makeStyles((colors) => ({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   burst: { width: 300, height: 260, alignItems: 'center', justifyContent: 'center' },
   glow: { position: 'absolute', width: 190, height: 190, borderRadius: 95, backgroundColor: colors.goldSoft },
+  // The app icon itself: the mark's ivory page needs the emerald behind it to show on a light page.
+  tile: { width: 112, height: 112, borderRadius: 26, backgroundColor: BRAND.emerald, alignItems: 'center', justifyContent: 'center' },
   ring: { position: 'absolute', width: 130, height: 130, borderRadius: 65, borderWidth: 1.5, borderColor: colors.gold },
   spark: { position: 'absolute', backgroundColor: colors.gold, borderRadius: 1 },
   numberBox: { height: NUMBER_HEIGHT, overflow: 'hidden', alignSelf: 'stretch', marginTop: -8 },

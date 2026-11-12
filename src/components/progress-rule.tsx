@@ -2,17 +2,15 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
-import { makeStyles } from '@/theme/theme';
+import { makeStyles, useColors } from '@/theme/theme';
 
-import { Mark } from './mark';
+import { Star } from './logo';
 
 const TIP = 16;
 
-/**
- * Progress as a gold rule drawn along a faint one, with the ۞ from the launch screen at its tip. The ornament turns
- * as it travels, and since it has eight points it always comes to rest looking upright.
- */
+/** Progress as a gold rule drawn along a faint one, with the star from the logo at its tip. */
 export function ProgressRule({ progress }: { progress: number }) {
+  const colors = useColors();
   const styles = useStyles();
   const [width, setWidth] = useState(0);
   const p = useSharedValue(progress);
@@ -23,7 +21,7 @@ export function ProgressRule({ progress }: { progress: number }) {
 
   const fill = useAnimatedStyle(() => ({ width: width * p.get() }));
   const tip = useAnimatedStyle(() => ({
-    transform: [{ translateX: width * p.get() - (TIP + 6) / 2 }, { rotate: `${p.get() * 720}deg` }],
+    transform: [{ translateX: width * p.get() - (TIP + 6) / 2 }],
   }));
 
   return (
@@ -31,7 +29,7 @@ export function ProgressRule({ progress }: { progress: number }) {
       <View style={styles.line} />
       <Animated.View style={[styles.fill, fill]} />
       <Animated.View style={[styles.tip, tip]}>
-        <Mark size={TIP} />
+        <Star size={TIP} color={colors.gold} />
       </Animated.View>
     </View>
   );

@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useTabBarSpace } from '@/theme/layout';
+
 import { Icon } from '@/components/icon';
 import { PrayerCard } from '@/components/prayer-card';
 import { Surface } from '@/components/ui';
@@ -26,6 +28,7 @@ export default function QuranScreen() {
   const colors = useColors();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
+  const tabBar = useTabBarSpace();
   const lastRead = useApp((s) => s.lastRead);
   const [query, setQuery] = useState('');
   const q = query.trim();
@@ -38,7 +41,7 @@ export default function QuranScreen() {
         keyExtractor={(s) => String(s.n)}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 20 }]}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 20, paddingBottom: 30 + tabBar }]}
         ListHeaderComponent={
           <View style={styles.header}>
             <Text style={styles.title}>Quran</Text>

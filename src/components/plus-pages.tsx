@@ -30,26 +30,61 @@ export function ValuePage() {
   );
 }
 
+/** The price and what renews, for under the button, as Apple and Google expect. */
+export function termsFor(price: string) {
+  return price ? `${price}. Renews automatically until you cancel.` : '';
+}
+
+type TilesProps = { plan: Plan; onPick: (plan: Plan) => void; delay?: number };
+
 /**
- * The last page of onboarding: Yearly or Monthly side by side, what the year comes to per day, and the same Continue
- * button as every page before it, with the price and renewal terms right under it. Lifetime and the legal links wait
- * in a quiet line at the bottom.
+ * Yearly and Monthly side by side, with what the chosen one comes to per day underneath. The amount actually charged
+ * is the largest price on each tile; Apple requires that, so the per-month and per-day figures sit smaller.
+ */
+export function PlanTiles({ plan, onPick, delay = 0 }: TilesProps) {
+  const styles = useStyles();
+  const { yearly, monthly } = usePlans();
+  const monthOfYear = yearly ? perDay(yearly, 12) : null;
+  const daily = plan === 'yearly' && yearly ? perDay(yearly) : plan === 'monthly' && monthly ? perDay(monthly, 30) : null;
+
+  return (
+    <View>
+      <Animated.View entering={FadeIn.delay(delay).duration(700)} style={styles.pair}>
+        {yearly && (
+          <Tile
+            on={plan === 'yearly'}
+            badge={yearly.badge}
+            title="Yearly"
+            price={yearly.short}
+            unit="/year"
+            line={monthOfYear ? `${monthOfYear} a month` : 'billed yearly'}
+            gold={!!monthOfYear}
+            onPress={() => onPick('yearly')}
+          />
+        )}
+        {monthly && (
+          <Tile on={plan === 'monthly'} title="Monthly" price={monthly.short} unit="/month" line="billed monthly" onPress={() => onPick('monthly')} />
+        )}
+      </Animated.View>
+      {daily && (
+        <Animated.Text key={plan} entering={FadeIn.delay(plan === 'yearly' ? delay + 450 : 0).duration(500)} style={styles.daily}>
+          That’s {daily} a day for {HOURS_A_YEAR} hours with the{' '}Quran.
+        </Animated.Text>
+      )}
+    </View>
+  );
+}
+
+/**
+ * The last page of onboarding: the two plans, and the same Continue button as every page before it, with the price
+ * and renewal terms right under it. The legal links wait in a quiet line at the bottom.
  */
 export function PlanPage({ onDone }: { onDone: () => void }) {
   const styles = useStyles();
   const plans = usePlans();
   const [plan, setPlan] = useState<Plan>('yearly');
-  const [all, setAll] = useState(false);
   const [busy, setBusy] = useState(false);
-  const { yearly, monthly, lifetime } = plans;
-  const chosen = plans[plan] ?? yearly;
-  const daily = yearly ? perDay(yearly) : null;
-  const monthOfYear = yearly ? perDay(yearly, 12) : null;
-
-  const pick = (p: Plan) => {
-    haptic.tap();
-    setPlan(p);
-  };
+  const chosen = plans[plan] ?? plans.yearly;
 
   const buy = async () => {
     if (busy || !chosen) return;
@@ -62,45 +97,27 @@ export function PlanPage({ onDone }: { onDone: () => void }) {
     }
   };
 
-  // The price and what renews, next to the button, as Apple and Google expect.
-  const terms = !chosen?.price ? '' : plan === 'lifetime' ? `${chosen.price}. Nothing renews.` : `${chosen.price}. Renews automatically until you cancel.`;
-
   return (
     <View style={styles.page}>
-      <Animated.View entering={FadeIn.delay(450).duration(700)} style={styles.pair}>
-        {yearly && (
-          <Tile
-            on={plan === 'yearly'}
-            badge={yearly.badge}
-            title="Yearly"
-            price={yearly.short}
-            line={monthOfYear ? `${monthOfYear} a month` : 'billed yearly'}
-            onPress={() => pick('yearly')}
-          />
-        )}
-        {monthly && <Tile on={plan === 'monthly'} title="Monthly" price={monthly.short} line="billed monthly" onPress={() => pick('monthly')} />}
-      </Animated.View>
-      {all && lifetime && (
-        <Animated.View entering={FadeIn.duration(400)} style={styles.lifetime}>
-          <Tile on={plan === 'lifetime'} title="Lifetime" price={lifetime.short} line="once, every card style included" onPress={() => pick('lifetime')} />
-        </Animated.View>
-      )}
-
-      {plan === 'yearly' && daily && (
-        <Animated.Text entering={FadeIn.delay(900).duration(700)} style={styles.daily}>
-          That’s {daily} a day for {HOURS_A_YEAR} hours with the{' '}Quran.
-        </Animated.Text>
-      )}
+      <View style={{ marginTop: 36 }}>
+        <PlanTiles
+          plan={plan}
+          delay={450}
+          onPick={(p) => {
+            haptic.tap();
+            setPlan(p);
+          }}
+        />
+      </View>
 
       <View style={styles.spacer} />
 
       <PrimaryButton label="Continue" disabled={busy} onPress={buy} />
       <Text style={styles.terms}>
-        {terms}
+        {termsFor(chosen?.price ?? '')}
         {isDemo ? ' Demo build.' : ''}
       </Text>
       <View style={styles.links}>
-        {!all && lifetime && <FootLink label="All plans" onPress={() => setAll(true)} />}
         <FootLink
           label="Restore"
           onPress={async () => {
@@ -114,7 +131,7 @@ export function PlanPage({ onDone }: { onDone: () => void }) {
   );
 }
 
-function FootLink({ label, onPress }: { label: string; onPress: () => void }) {
+export function FootLink({ label, onPress }: { label: string; onPress: () => void }) {
   const styles = useStyles();
   return (
     <Pressable hitSlop={8} onPress={onPress} accessibilityRole="button">
@@ -123,10 +140,21 @@ function FootLink({ label, onPress }: { label: string; onPress: () => void }) {
   );
 }
 
-type TileProps = { on: boolean; title: string; price: string; line: string; badge?: string | null; onPress: () => void };
+type TileProps = {
+  on: boolean;
+  title: string;
+  /** The amount actually charged, the largest price on the tile. */
+  price: string;
+  unit: string;
+  line: string;
+  /** Sets the line in gold, for the per-month figure. */
+  gold?: boolean;
+  badge?: string | null;
+  onPress: () => void;
+};
 
 /** A plan as a quiet card; the chosen one takes the gold edge. */
-function Tile({ on, title, price, line, badge, onPress }: TileProps) {
+function Tile({ on, title, price, unit, line, gold, badge, onPress }: TileProps) {
   const styles = useStyles();
   return (
     <Pressable
@@ -139,8 +167,11 @@ function Tile({ on, title, price, line, badge, onPress }: TileProps) {
       style={[styles.tile, on && styles.tileOn]}>
       {badge && <Text style={styles.badge}>{badge}</Text>}
       <Text style={[styles.tileTitle, on && styles.tileTitleOn]}>{title}</Text>
-      <Text style={styles.tilePrice}>{price || '…'}</Text>
-      <Text style={styles.tileLine}>{line}</Text>
+      <View style={styles.priceRow}>
+        <Text style={styles.tilePrice}>{price || '…'}</Text>
+        <Text style={styles.tileUnit}>{unit}</Text>
+      </View>
+      <Text style={[styles.tileLine, gold && styles.tileGold]}>{line}</Text>
     </Pressable>
   );
 }
@@ -154,8 +185,7 @@ const useStyles = makeStyles((colors) => ({
   source: { fontFamily: fonts.ui, fontSize: 13, color: colors.quiet, textAlign: 'center', marginTop: 12 },
 
   page: { flex: 1 },
-  pair: { flexDirection: 'row', gap: 12, marginTop: 36 },
-  lifetime: { marginTop: 12, flexDirection: 'row' },
+  pair: { flexDirection: 'row', gap: 12 },
   tile: {
     flex: 1,
     alignItems: 'center',
@@ -181,9 +211,12 @@ const useStyles = makeStyles((colors) => ({
   },
   tileTitle: { fontFamily: fonts.uiMedium, fontSize: 14.5, color: colors.quiet },
   tileTitleOn: { color: colors.text },
-  tilePrice: { fontFamily: fonts.read, fontSize: 26, lineHeight: 34, color: colors.text, marginTop: 6, fontVariant: ['tabular-nums'] },
-  tileLine: { fontFamily: fonts.ui, fontSize: 13, color: colors.quiet, marginTop: 2, textAlign: 'center' },
-  daily: { fontFamily: fonts.read, fontSize: 16, lineHeight: 24, color: colors.read, textAlign: 'center', marginTop: 28 },
+  priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 3, marginTop: 6 },
+  tilePrice: { fontFamily: fonts.read, fontSize: 28, lineHeight: 36, color: colors.text, fontVariant: ['tabular-nums'] },
+  tileUnit: { fontFamily: fonts.ui, fontSize: 13, color: colors.quiet },
+  tileLine: { fontFamily: fonts.ui, fontSize: 13, color: colors.quiet, marginTop: 4, textAlign: 'center' },
+  tileGold: { fontFamily: fonts.uiSemi, fontSize: 15, color: colors.gold },
+  daily: { fontFamily: fonts.read, fontSize: 16, lineHeight: 24, color: colors.read, textAlign: 'center', marginTop: 24 },
 
   spacer: { flex: 1, minHeight: 24 },
   terms: { fontFamily: fonts.ui, fontSize: 12, lineHeight: 17, color: colors.faint, textAlign: 'center', marginTop: 12 },

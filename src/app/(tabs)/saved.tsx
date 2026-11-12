@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useTabBarSpace } from '@/theme/layout';
+
 import { Icon } from '@/components/icon';
 import { PrimaryButton } from '@/components/primary-button';
 import { SavedCard } from '@/components/saved-tile';
@@ -28,6 +30,7 @@ type Filter = (typeof FILTERS)[number]['id'];
 export default function SavedScreen() {
   const styles = useStyles();
   const insets = useSafeAreaInsets();
+  const tabBar = useTabBarSpace();
   const saved = useApp((s) => s.saved);
   const notes = useApp((s) => s.notes);
   const premium = useApp((s) => s.premium);
@@ -49,7 +52,7 @@ export default function SavedScreen() {
       <FlatList
         data={shown}
         keyExtractor={([k]) => k}
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + 20 }]}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 20, paddingBottom: 30 + tabBar }]}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         ListHeaderComponent={
           <View style={styles.header}>

@@ -20,7 +20,7 @@ export default function Terms() {
             `Monthly and yearly plans renew automatically until you cancel. Cancel at least 24 hours before the current period ends to avoid the next charge.`,
             `Payment is taken from your ${ACCOUNT} when you confirm a purchase.`,
             `Manage or cancel a plan in your ${STORE} subscription settings. Deleting the app does not cancel it.`,
-            'Lifetime Plus and card styles are one-time purchases. Nothing renews.',
+            'Card styles are one-time purchases. Nothing renews.',
             `Refunds are handled by ${Platform.OS === 'android' ? 'Google' : 'Apple'} under their own policies.`,
           ]}
         />

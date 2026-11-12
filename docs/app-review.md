@@ -10,11 +10,11 @@ channel, and a production build refuses to start without the RevenueCat key.
 1. **Agreements.** App Store Connect → Business: the Paid Apps agreement signed, with bank and tax details. Without it,
    in-app purchases don't load for the reviewer and the app is rejected for a broken paywall.
 2. **In-app purchases, submitted with the build.** Create the yearly and monthly subscriptions (one subscription group,
-   no free trial), the lifetime non-consumable and the five card-style non-consumables (`style_blue`, `style_rosette`,
+   no free trial) and the five card-style non-consumables (`style_blue`, `style_rosette`,
    `style_morocco`, `style_fatiha`, `style_all`). Give each a display name, description and review screenshot, and add
    them to the version on the submission page. Products that aren't submitted with the first build can't be bought in
    review.
-3. **RevenueCat** has the iOS key in `.env`, the `plus` entitlement and the Annual, Monthly and Lifetime packages in the
+3. **RevenueCat** has the iOS key in `.env`, the `plus` entitlement and the Annual and Monthly packages in the
    current offering.
 4. **Web pages live.** Turn on GitHub Pages so the privacy policy and support URLs open:
    `https://zmrishh.github.io/scroll-quran/privacy.html` and `https://zmrishh.github.io/scroll-quran/`.
@@ -35,8 +35,8 @@ Paste into App Review Information → Notes:
 > Scroll Quran is a short-form Quran reader. No account is needed: complete the three onboarding questions, then tap
 > "Not now" on the sign-in screen, or use Sign in with Apple.
 >
-> In-app purchases: Scroll Quran Plus (yearly, monthly and lifetime) is offered after onboarding and when the free daily
-> cards run out in the feed. Card styles are under You → Card style; Lifetime includes every style. Restore Purchases is on
+> In-app purchases: Scroll Quran Plus (yearly and monthly) is offered after onboarding and when the free daily
+> cards run out in the feed. Card styles are under You → Card style. Restore Purchases is on
 > both screens.
 >
 > Location is requested only when you tap "Show today's prayers" on the Quran tab, and is used on the device to work out

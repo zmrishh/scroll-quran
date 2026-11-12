@@ -6,7 +6,7 @@ import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { DHIKR, DUAS, NAMES, PASSAGES, passageEnglish, type Topic } from '@/data/content';
 import type { CardStyleId } from '@/data/styles';
 import type { FeedItem } from '@/feed/engine';
-import { TAB_BAR_HEIGHT } from '@/theme/layout';
+import { TabBarSpace, tabBarSpace } from '@/theme/layout';
 import { makeStyles } from '@/theme/theme';
 import { fonts } from '@/theme/tokens';
 
@@ -21,7 +21,8 @@ import { BottomBar, TabButton } from './tab-bar';
 const SCREEN = { width: 390, height: 844 };
 const INSETS = { top: 54, bottom: 34, left: 0, right: 0 };
 const CORNER = 55;
-const CARD_HEIGHT = SCREEN.height - TAB_BAR_HEIGHT - INSETS.bottom;
+// The tab bar floats over the screen, as in the app, so cards run the full height and keep room at their foot.
+const CARD_HEIGHT = SCREEN.height;
 const EVERY_MS = 2800;
 
 type Tab = 'feed' | 'quran';
@@ -179,7 +180,7 @@ export function HeartPreview() {
 export function QuranPreview() {
   return (
     <Screen tab="quran">
-      <View style={{ height: SCREEN.height - TAB_BAR_HEIGHT - INSETS.bottom }}>
+      <View style={{ height: CARD_HEIGHT }}>
         <SurahView n={55} preview />
       </View>
     </Screen>
@@ -209,15 +210,17 @@ export function StylesPreview() {
 function Screen({ tab, children }: { tab: Tab; children: ReactNode }) {
   const styles = useStyles();
   return (
-    <View style={styles.app}>
-      <View style={styles.content}>{children}</View>
-      <BottomBar>
-        <TabButton icon="feed" label="Feed" isFocused={tab === 'feed'} />
-        <TabButton icon="book" label="Quran" isFocused={tab === 'quran'} />
-        <TabButton icon="bookmark" label="Saved" isFocused={false} />
-        <TabButton icon="user" label="You" isFocused={false} />
-      </BottomBar>
-    </View>
+    <TabBarSpace.Provider value={tabBarSpace(INSETS.bottom)}>
+      <View style={styles.app}>
+        <View style={styles.content}>{children}</View>
+        <BottomBar active={tab === 'quran' ? 1 : 0}>
+          <TabButton icon="feed" label="Feed" isFocused={tab === 'feed'} />
+          <TabButton icon="book" label="Quran" isFocused={tab === 'quran'} />
+          <TabButton icon="bookmark" label="Saved" isFocused={false} />
+          <TabButton icon="user" label="You" isFocused={false} />
+        </BottomBar>
+      </View>
+    </TabBarSpace.Provider>
   );
 }
 

@@ -5,7 +5,7 @@ import { FREE_SAVES, useApp } from '@/store/app-store';
 
 import { haptic } from './feedback';
 
-export type PaywallReason = 'welcome' | 'limit' | 'saves' | 'topic' | 'styles';
+export type PaywallReason = 'welcome' | 'limit' | 'saves' | 'topic';
 
 /** What the paywall interrupted, finished once Plus turns on: the card being saved, or the topic being opened. */
 type Pending = { save: { key: string; topics: readonly Topic[] } } | { topic: Topic };

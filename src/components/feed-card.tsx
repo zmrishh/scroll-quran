@@ -229,7 +229,7 @@ function LimitCard({ height }: { height: number }) {
   const resetIn = mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : `${mins}m`;
 
   return (
-    <View style={[styles.limit, { height, paddingTop: chrome.contentTop - 10, paddingBottom: 16 }]}>
+    <View style={[styles.limit, { height, paddingTop: chrome.contentTop - 10, paddingBottom: 16 + chrome.tabBar }]}>
       <PaywallPanel reason="limit" compact />
       <Text style={styles.limitReset}>Your free cards come back in {resetIn}.</Text>
     </View>

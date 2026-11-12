@@ -12,9 +12,9 @@ import { create } from 'zustand';
 import { ALL_STYLES_PRODUCT, STYLE_PRODUCTS } from '@/data/styles';
 import { useApp, type Account } from '@/store/app-store';
 
-export type Plan = 'yearly' | 'monthly' | 'lifetime';
+export type Plan = 'yearly' | 'monthly';
 /**
- * price: the full line ("$29.99 a year"); short: the bare price ("$29.99"); amount: the number, for comparing plans.
+ * price: the full line ("$49.99 a year"); short: the bare price ("$49.99"); amount: the number, for comparing plans.
  * badge: the yearly plan's saving against paying monthly, worked out from the store prices.
  * currency: the ISO code, for working out a price per day or per month.
  */
@@ -29,8 +29,8 @@ export type PlanInfo = {
 };
 
 /**
- * RevenueCat setup this code expects: an entitlement with this identifier, with the yearly, monthly and
- * lifetime products attached, all in the current offering's Annual, Monthly and Lifetime packages.
+ * RevenueCat setup this code expects: an entitlement with this identifier, with the yearly and monthly
+ * subscriptions attached, both in the current offering's Annual and Monthly packages.
  * There is no free trial. Card styles are separate one-time products (see STYLE_PRODUCTS).
  */
 const ENTITLEMENT = 'plus';
@@ -49,30 +49,20 @@ const STORE_ACCOUNT = Platform.OS === 'android' ? 'Google account' : 'Apple ID';
 const DEMO_PLANS: Record<Plan, PlanInfo | null> = {
   yearly: {
     title: 'Yearly',
-    price: '$29.99 a year',
-    short: '$29.99',
-    amount: 29.99,
-    note: '$2.50 a month, billed yearly',
-    badge: 'Save 50%',
-    currency: 'USD',
-  },
-  monthly: { title: 'Monthly', price: '$4.99 a month', short: '$4.99', amount: 4.99, note: 'Cancel any time', badge: null, currency: 'USD' },
-  lifetime: {
-    title: 'Lifetime',
-    price: '$49.99 once',
+    price: '$49.99 a year',
     short: '$49.99',
     amount: 49.99,
-    note: 'Pay once, keep Plus for good',
-    badge: null,
+    note: '$4.17 a month, billed yearly',
+    badge: 'Save 48%',
     currency: 'USD',
   },
+  monthly: { title: 'Monthly', price: '$7.99 a month', short: '$7.99', amount: 7.99, note: 'Cancel any time', badge: null, currency: 'USD' },
 };
 
 // With RevenueCat, prices stay blank until the store returns them in the user's own currency.
 const LOADING_PLANS: Record<Plan, PlanInfo | null> = {
   yearly: { title: 'Yearly', price: '', short: '', amount: null, note: '', badge: null, currency: 'USD' },
   monthly: { title: 'Monthly', price: '', short: '', amount: null, note: '', badge: null, currency: 'USD' },
-  lifetime: null,
 };
 
 /** A plan's price spread over a number of days (a year unless given), in its own currency, such as "$0.08". */
@@ -97,13 +87,11 @@ let packages: Partial<Record<Plan, PurchasesPackage>> = {};
 let styleProducts: Record<string, PurchasesStoreProduct> = {};
 
 const isActive = (info: CustomerInfo) => ENTITLEMENT in info.entitlements.active;
-// Plus that never expires is Lifetime, whichever product granted it, so it needs nothing extra set up in RevenueCat.
-const isLifetime = (info: CustomerInfo) => info.entitlements.active[ENTITLEMENT]?.expirationDate === null;
 
 /** RevenueCat is the source of truth: an expired or refunded purchase turns Plus or a style off. */
 function applyCustomerInfo(info: CustomerInfo) {
   const ownedStyles = info.nonSubscriptionTransactions.map((t) => t.productIdentifier).filter((id) => STYLE_PRODUCTS.includes(id));
-  useApp.getState().set({ premium: isActive(info), lifetime: isLifetime(info), ownedStyles });
+  useApp.getState().set({ premium: isActive(info), ownedStyles });
 }
 
 /** The RevenueCat customer for an account. Only this opaque ID leaves the phone, never the name or email. */
@@ -145,7 +133,7 @@ export async function loadPlans() {
   try {
     const offering = (await Purchases.getOfferings()).current;
     if (!offering?.annual || !offering.monthly) return;
-    packages = { yearly: offering.annual, monthly: offering.monthly, lifetime: offering.lifetime ?? undefined };
+    packages = { yearly: offering.annual, monthly: offering.monthly };
     const year = offering.annual.product;
     const month = offering.monthly.product;
     const saving = Math.round((1 - year.price / (month.price * 12)) * 100);
@@ -168,17 +156,6 @@ export async function loadPlans() {
         badge: null,
         currency: month.currencyCode,
       },
-      lifetime: offering.lifetime
-        ? {
-            title: 'Lifetime',
-            price: `${offering.lifetime.product.priceString} once`,
-            short: offering.lifetime.product.priceString,
-            amount: offering.lifetime.product.price,
-            note: 'Pay once, keep Plus for good',
-            badge: null,
-            currency: offering.lifetime.product.currencyCode,
-          }
-        : null,
     });
   } catch {}
 }
@@ -211,7 +188,7 @@ function demoAllowed() {
 export async function purchase(plan: Plan): Promise<boolean> {
   if (isDemo) {
     if (!demoAllowed()) return false;
-    useApp.getState().set({ premium: true, lifetime: plan === 'lifetime' || useApp.getState().lifetime });
+    useApp.getState().set({ premium: true });
     return true;
   }
   await loadPlans();

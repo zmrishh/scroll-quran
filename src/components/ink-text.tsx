@@ -10,14 +10,24 @@ const EDGE = 28;
 const MS_PER_PX = 1.35;
 
 type Line = { x: number; y: number; width: number; height: number };
-type Props = { children: ReactNode; style?: StyleProp<TextStyle>; delay?: number };
+/** The colour behind the text, as a colour and as "r,g,b" for the soft edge. */
+type Ground = { color: string; rgb: string };
+type Props = {
+  children: ReactNode;
+  style?: StyleProp<TextStyle>;
+  delay?: number;
+  /** Milliseconds per point of line; higher writes more slowly. */
+  speed?: number;
+  /** The page colour behind the text, when it isn't the theme's (the launch screen is always parchment). */
+  ground?: Ground;
+};
 
 /**
- * Text that writes itself in, one line after another and left to right, the way the Basmala is written on the
- * launch screen. A cover in the page colour slides off each line with a soft leading edge, so it only works on the
- * plain page. With Reduce Motion it fades in instead.
+ * Text that writes itself in, one line after another and left to right, like ink from a pen. A cover in the page
+ * colour slides off each line with a soft leading edge, so it only works on a plain page. With Reduce Motion it fades
+ * in instead.
  */
-export function InkText({ children, style, delay = 0 }: Props) {
+export function InkText({ children, style, delay = 0, speed = MS_PER_PX, ground }: Props) {
   const reduce = useReducedMotion();
   // The measured lines, or 'plain' if they never arrive, in which case the words show without the writing.
   // Whichever comes first stays.
@@ -26,7 +36,7 @@ export function InkText({ children, style, delay = 0 }: Props) {
   const settle = (next: Line[] | 'plain') => setLayout((now) => now ?? next);
   const clock = useSharedValue(0);
   const boxRef = useRef<HostInstance>(null);
-  const total = lines ? lines.reduce((t, l) => t + (l.width + EDGE) * MS_PER_PX, 0) : 0;
+  const total = lines ? lines.reduce((t, l) => t + (l.width + EDGE) * speed, 0) : 0;
 
   useEffect(() => {
     const timer = setTimeout(() => setLayout((now) => now ?? 'plain'), 900);
@@ -64,7 +74,7 @@ export function InkText({ children, style, delay = 0 }: Props) {
   // Each line starts when the one before it ends.
   const parts = (lines ?? []).reduce<{ line: Line; start: number; duration: number }[]>((list, line) => {
     const before = list[list.length - 1];
-    return [...list, { line, start: before ? before.start + before.duration : 0, duration: (line.width + EDGE) * MS_PER_PX }];
+    return [...list, { line, start: before ? before.start + before.duration : 0, duration: (line.width + EDGE) * speed }];
   }, []);
 
   return (
@@ -77,14 +87,17 @@ export function InkText({ children, style, delay = 0 }: Props) {
         {children}
       </Text>
       {parts.map((p, i) => (
-        <Cover key={i} clock={clock} line={p.line} start={p.start} duration={p.duration} />
+        <Cover key={i} clock={clock} line={p.line} start={p.start} duration={p.duration} ground={ground} />
       ))}
     </View>
   );
 }
 
-function Cover({ clock, line, start, duration }: { clock: SharedValue<number>; line: Line; start: number; duration: number }) {
+type CoverProps = { clock: SharedValue<number>; line: Line; start: number; duration: number; ground?: Ground };
+
+function Cover({ clock, line, start, duration, ground }: CoverProps) {
   const colors = useColors();
+  const page = ground ?? { color: colors.page, rgb: colors.pageRgb };
   const style = useAnimatedStyle(() => {
     const x = Math.min(1, Math.max(0, (clock.get() - start) / duration));
     const eased = x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
@@ -95,12 +108,12 @@ function Cover({ clock, line, start, duration }: { clock: SharedValue<number>; l
       pointerEvents="none"
       style={[styles.cover, { left: line.x - EDGE, top: line.y, width: line.width + EDGE * 2, height: line.height }, style]}>
       <LinearGradient
-        colors={[`rgba(${colors.pageRgb},0)`, colors.page]}
+        colors={[`rgba(${page.rgb},0)`, page.color]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={{ width: EDGE }}
       />
-      <View style={{ flex: 1, backgroundColor: colors.page }} />
+      <View style={{ flex: 1, backgroundColor: page.color }} />
     </Animated.View>
   );
 }

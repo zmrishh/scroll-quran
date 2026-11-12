@@ -2,6 +2,8 @@ import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useTabBarSpace } from '@/theme/layout';
+
 import { useCardStyle } from '@/components/card-style';
 import { Icon } from '@/components/icon';
 import { PrimaryButton } from '@/components/primary-button';
@@ -56,6 +58,7 @@ export default function YouScreen() {
   const colors = useColors();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
+  const tabBar = useTabBarSpace();
   const s = useApp();
   const look = useCardStyle();
   const mood = moodToday(s);
@@ -89,7 +92,7 @@ export default function YouScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 20 }]} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 20, paddingBottom: 40 + tabBar }]} showsVerticalScrollIndicator={false}>
         <Text style={styles.salam}>السلام عليكم</Text>
         <Text style={styles.title}>Your journey</Text>
 
@@ -162,13 +165,9 @@ export default function YouScreen() {
           <Surface accent style={styles.plus}>
             <View style={styles.plusHead}>
               <Text style={styles.plusTitle}>Scroll Quran Plus</Text>
-              <Text style={styles.plusBadge}>{s.lifetime ? 'Lifetime' : 'Active'}</Text>
+              <Text style={styles.plusBadge}>Active</Text>
             </View>
-            <Text style={styles.plusBody}>
-              {s.lifetime
-                ? 'No daily limit, every topic feed, unlimited saves, clean shares and every card style.'
-                : 'No daily limit, every topic feed, unlimited saves and clean shares.'}
-            </Text>
+            <Text style={styles.plusBody}>No daily limit, every topic feed, unlimited saves and clean shares.</Text>
           </Surface>
         ) : (
           <Surface accent style={styles.plus}>
@@ -223,7 +222,7 @@ export default function YouScreen() {
               router.replace('/onboarding');
             }}
           />
-          {isDemo && s.premium && <Row label="Turn off Plus (demo)" divider onPress={() => s.set({ premium: false, lifetime: false })} />}
+          {isDemo && s.premium && <Row label="Turn off Plus (demo)" divider onPress={() => s.set({ premium: false })} />}
           {__DEV__ && !s.premium && s.viewedToday > 0 && (
             <Row label="Reset today’s free cards (development)" divider onPress={() => useApp.setState({ viewedToday: 0 })} />
           )}
