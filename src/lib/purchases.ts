@@ -16,8 +16,17 @@ export type Plan = 'yearly' | 'monthly' | 'lifetime';
 /**
  * price: the full line ("$29.99 a year"); short: the bare price ("$29.99"); amount: the number, for comparing plans.
  * badge: the yearly plan's saving against paying monthly, worked out from the store prices.
+ * currency: the ISO code, for working out a price per day or per month.
  */
-export type PlanInfo = { title: string; price: string; short: string; amount: number | null; note: string; badge: string | null };
+export type PlanInfo = {
+  title: string;
+  price: string;
+  short: string;
+  amount: number | null;
+  note: string;
+  badge: string | null;
+  currency: string;
+};
 
 /**
  * RevenueCat setup this code expects: an entitlement with this identifier, with the yearly, monthly and
@@ -38,17 +47,43 @@ export const STORE = Platform.OS === 'android' ? 'Google Play' : 'App Store';
 const STORE_ACCOUNT = Platform.OS === 'android' ? 'Google account' : 'Apple ID';
 
 const DEMO_PLANS: Record<Plan, PlanInfo | null> = {
-  yearly: { title: 'Yearly', price: '$29.99 a year', short: '$29.99', amount: 29.99, note: '$2.50 a month, billed yearly', badge: 'Save 50%' },
-  monthly: { title: 'Monthly', price: '$4.99 a month', short: '$4.99', amount: 4.99, note: 'Cancel any time', badge: null },
-  lifetime: { title: 'Lifetime', price: '$49.99 once', short: '$49.99', amount: 49.99, note: 'Pay once, keep Plus for good', badge: null },
+  yearly: {
+    title: 'Yearly',
+    price: '$29.99 a year',
+    short: '$29.99',
+    amount: 29.99,
+    note: '$2.50 a month, billed yearly',
+    badge: 'Save 50%',
+    currency: 'USD',
+  },
+  monthly: { title: 'Monthly', price: '$4.99 a month', short: '$4.99', amount: 4.99, note: 'Cancel any time', badge: null, currency: 'USD' },
+  lifetime: {
+    title: 'Lifetime',
+    price: '$49.99 once',
+    short: '$49.99',
+    amount: 49.99,
+    note: 'Pay once, keep Plus for good',
+    badge: null,
+    currency: 'USD',
+  },
 };
 
 // With RevenueCat, prices stay blank until the store returns them in the user's own currency.
 const LOADING_PLANS: Record<Plan, PlanInfo | null> = {
-  yearly: { title: 'Yearly', price: '', short: '', amount: null, note: '', badge: null },
-  monthly: { title: 'Monthly', price: '', short: '', amount: null, note: '', badge: null },
+  yearly: { title: 'Yearly', price: '', short: '', amount: null, note: '', badge: null, currency: 'USD' },
+  monthly: { title: 'Monthly', price: '', short: '', amount: null, note: '', badge: null, currency: 'USD' },
   lifetime: null,
 };
+
+/** A plan's price spread over a number of days (a year unless given), in its own currency, such as "$0.08". */
+export function perDay(info: PlanInfo, days = 365) {
+  if (!info.amount) return null;
+  try {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: info.currency, maximumFractionDigits: 2 }).format(info.amount / days);
+  } catch {
+    return null;
+  }
+}
 
 /** The plans as the paywall shows them; null when the store has no such plan. */
 export const usePlans = create<Record<Plan, PlanInfo | null>>(() => (isDemo ? DEMO_PLANS : LOADING_PLANS));
@@ -122,8 +157,17 @@ export async function loadPlans() {
         amount: year.price,
         note: year.pricePerMonthString ? `${year.pricePerMonthString} a month, billed yearly` : 'Billed yearly',
         badge: saving >= 5 ? `Save ${saving}%` : null,
+        currency: year.currencyCode,
       },
-      monthly: { title: 'Monthly', price: `${month.priceString} a month`, short: month.priceString, amount: month.price, note: 'Cancel any time', badge: null },
+      monthly: {
+        title: 'Monthly',
+        price: `${month.priceString} a month`,
+        short: month.priceString,
+        amount: month.price,
+        note: 'Cancel any time',
+        badge: null,
+        currency: month.currencyCode,
+      },
       lifetime: offering.lifetime
         ? {
             title: 'Lifetime',
@@ -132,6 +176,7 @@ export async function loadPlans() {
             amount: offering.lifetime.product.price,
             note: 'Pay once, keep Plus for good',
             badge: null,
+            currency: offering.lifetime.product.currencyCode,
           }
         : null,
     });

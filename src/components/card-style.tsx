@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect } from 'react';
+import { createContext, useContext, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 
@@ -9,6 +9,8 @@ import { cardStyle, ownsStyle, type CardStyleId } from '@/data/styles';
 import { useApp } from '@/store/app-store';
 import { makeStyles, useColors } from '@/theme/theme';
 
+/** Shows cards in a given style regardless of the reader's choice, for previews such as onboarding's. */
+export const CardStyleOverride = createContext<CardStyleId | null>(null);
 
 type Props = {
   style: CardStyleId;
@@ -90,9 +92,11 @@ function GlowLayer({ seed }: { seed: string }) {
   );
 }
 
-/** The style the cards should use: the chosen one if it's owned, otherwise Glow. */
+/** The style the cards should use: a preview's override, else the chosen one if it's owned, otherwise Glow. */
 export function useCardStyle(): CardStyleId {
-  return useApp((s) => (ownsStyle(cardStyle(s.cardStyle), s.ownedStyles, s.lifetime) ? s.cardStyle : 'glow'));
+  const forced = useContext(CardStyleOverride);
+  const chosen = useApp((s) => (ownsStyle(cardStyle(s.cardStyle), s.ownedStyles, s.lifetime) ? s.cardStyle : 'glow'));
+  return forced ?? chosen;
 }
 
 const useStyles = makeStyles((colors) => ({

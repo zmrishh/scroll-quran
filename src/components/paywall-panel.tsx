@@ -46,7 +46,7 @@ function copyFor(reason: PaywallReason, topic: Topic | undefined, picked: string
         };
       }
       return {
-        title: 'Make it a daily habit.',
+        title: 'Scroll the Quran instead.',
         body: picked
           ? `You picked ${picked}. Plus opens those feeds and takes away the daily limit.`
           : 'Plus opens every topic feed and takes away the daily limit.',
@@ -66,16 +66,6 @@ type Props = {
 export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
   const colors = useColors();
   const styles = useStyles();
-  const plans = usePlans();
-  // Lifetime is the one on offer first; until someone picks, it's chosen whenever the store has it.
-  const [choice, setChoice] = useState<Plan | null>(null);
-  const plan: Plan = choice ?? (plans.lifetime ? 'lifetime' : 'yearly');
-  const chosen = plans[plan] ?? plans.yearly!;
-  const subscriptions = (['yearly', 'monthly'] as const).filter((id) => plans[id]);
-  const select = (id: Plan) => {
-    haptic.tap();
-    setChoice(id);
-  };
   const picked = joinNames(useApp((s) => s.topics).map(topicLabel));
   const goal = useApp((s) => s.dailyGoal);
   const copy = copyFor(reason, topic, picked, goal);
@@ -86,17 +76,6 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
     `Save as many cards as you like (free is ${FREE_SAVES})`,
     'Share cards without the watermark',
   ];
-
-  // Retries the store prices if they didn't load when the app opened.
-  useEffect(() => {
-    loadPlans();
-  }, []);
-
-  // Apple and Google both expect the renewal terms next to the button.
-  const once = plan === 'lifetime';
-  const terms = chosen.price
-    ? `${chosen.price}. ${once ? 'One payment. Nothing renews.' : `Renews automatically until you cancel in your ${STORE} settings, at least 24 hours before it renews.`}${isDemo ? ' Demo build: no payment is taken.' : ''}`
-    : '';
 
   return (
     <View>
@@ -115,6 +94,46 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
         </View>
       )}
 
+      <Offer compact={compact} onSubscribed={onSubscribed} />
+    </View>
+  );
+}
+
+type OfferProps = {
+  compact?: boolean;
+  onSubscribed?: () => void;
+  /** Adds a quiet "Not now" under the button, for where the offer is a step rather than a screen of its own. */
+  onSkip?: () => void;
+};
+
+/** The plans, Lifetime first, with the button, the renewal terms, restore and the legal links. */
+export function Offer({ compact, onSubscribed, onSkip }: OfferProps) {
+  const colors = useColors();
+  const styles = useStyles();
+  const plans = usePlans();
+  // Lifetime is the one on offer first; until someone picks, it's chosen whenever the store has it.
+  const [choice, setChoice] = useState<Plan | null>(null);
+  const plan: Plan = choice ?? (plans.lifetime ? 'lifetime' : 'yearly');
+  const chosen = plans[plan] ?? plans.yearly!;
+  const subscriptions = (['yearly', 'monthly'] as const).filter((id) => plans[id]);
+  const select = (id: Plan) => {
+    haptic.tap();
+    setChoice(id);
+  };
+
+  // Retries the store prices if they didn't load when the app opened.
+  useEffect(() => {
+    loadPlans();
+  }, []);
+
+  // Apple and Google both expect the renewal terms next to the button.
+  const once = plan === 'lifetime';
+  const terms = chosen.price
+    ? `${chosen.price}. ${once ? 'One payment. Nothing renews.' : `Renews automatically until you cancel in your ${STORE} settings, at least 24 hours before it renews.`}${isDemo ? ' Demo build: no payment is taken.' : ''}`
+    : '';
+
+  return (
+    <View>
       <View style={[styles.plans, compact && styles.plansCompact]}>
         {plans.lifetime && (
           <LifetimeCard
@@ -159,6 +178,11 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
         }}
         style={{ marginTop: compact ? 16 : 22 }}
       />
+      {onSkip && (
+        <Pressable hitSlop={10} onPress={onSkip} style={styles.skip} accessibilityRole="button">
+          <Text style={styles.skipText}>Not now</Text>
+        </Pressable>
+      )}
       <Text style={styles.fine}>{terms}</Text>
       <View style={styles.links}>
         <Pressable
@@ -312,6 +336,8 @@ const useStyles = makeStyles((colors) => ({
   },
   planNote: { fontFamily: fonts.ui, fontSize: 13, color: colors.quiet, marginTop: 2 },
   planPrice: { fontFamily: fonts.uiMedium, fontSize: 15, color: colors.read },
+  skip: { alignSelf: 'center', marginTop: 14, paddingVertical: 2 },
+  skipText: { fontFamily: fonts.uiMedium, fontSize: 15, color: colors.read },
   fine: { fontFamily: fonts.ui, fontSize: 12, lineHeight: 17, color: colors.faint, textAlign: 'center', marginTop: 12 },
   links: { flexDirection: 'row', justifyContent: 'center', gap: 20, marginTop: 10 },
   link: { fontFamily: fonts.ui, fontSize: 12.5, color: colors.quiet, textDecorationLine: 'underline' },
