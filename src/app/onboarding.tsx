@@ -65,7 +65,7 @@ function headFor(step: Step, names: string): { title: string; sub?: string } | n
     case 'value':
       return { title: 'Give the Quran fifteen minutes a day.' };
     case 'plans':
-      return { title: 'Start your year with the Quran.', sub: 'No daily limit, a feed for every topic, every verse saved.' };
+      return { title: 'Start your year with the Quran.', sub: 'No daily limit, every topic feed and every manuscript style.' };
     default:
       return null;
   }

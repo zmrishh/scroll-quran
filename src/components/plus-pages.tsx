@@ -35,13 +35,19 @@ export function termsFor(price: string) {
   return price ? `${price}. Renews automatically until you cancel.` : '';
 }
 
-type TilesProps = { plan: Plan; onPick: (plan: Plan) => void; delay?: number };
+type TilesProps = {
+  plan: Plan;
+  onPick: (plan: Plan) => void;
+  delay?: number;
+  /** Shows what the chosen plan comes to per day; off where there's little room. */
+  showDaily?: boolean;
+};
 
 /**
  * Yearly and Monthly side by side, with what the chosen one comes to per day underneath. The amount actually charged
  * is the largest price on each tile; Apple requires that, so the per-month and per-day figures sit smaller.
  */
-export function PlanTiles({ plan, onPick, delay = 0 }: TilesProps) {
+export function PlanTiles({ plan, onPick, delay = 0, showDaily = true }: TilesProps) {
   const styles = useStyles();
   const { yearly, monthly } = usePlans();
   const monthOfYear = yearly ? perDay(yearly, 12) : null;
@@ -66,7 +72,7 @@ export function PlanTiles({ plan, onPick, delay = 0 }: TilesProps) {
           <Tile on={plan === 'monthly'} title="Monthly" price={monthly.short} unit="/month" line="billed monthly" onPress={() => onPick('monthly')} />
         )}
       </Animated.View>
-      {daily && (
+      {showDaily && daily && (
         <Animated.Text key={plan} entering={FadeIn.delay(plan === 'yearly' ? delay + 450 : 0).duration(500)} style={styles.daily}>
           That’s {daily} a day for {HOURS_A_YEAR} hours with the{' '}Quran.
         </Animated.Text>

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { topicLabel, type Topic } from '@/data/content';
+import { PAID_STYLES } from '@/data/styles';
 import { haptic } from '@/lib/feedback';
 import { isDemo, loadPlans, purchase, restorePurchases, usePlans, type Plan } from '@/lib/purchases';
 import type { PaywallReason } from '@/lib/upsell';
@@ -24,6 +25,11 @@ function copyFor(reason: PaywallReason, topic: Topic | undefined, picked: string
       return { title: `That’s your ${FREE_DAILY_CARDS} for today.`, body: 'Plus has no daily limit, so you can keep reading now.' };
     case 'saves':
       return { title: `Your ${FREE_SAVES} free saves are used.`, body: 'With Plus you can keep every card you want to come back to.' };
+    case 'styles':
+      return {
+        title: 'Every card style comes with Plus.',
+        body: `Plus opens every topic feed, takes away the daily limit and includes all ${PAID_STYLES.length} manuscript styles.`,
+      };
     case 'topic':
       return {
         title: `The ${topic ? topicLabel(topic) : 'topic'} feed is part of Plus.`,
@@ -50,11 +56,13 @@ type Props = {
   topic?: Topic;
   /** Tighter spacing for the wall that ends the free feed. */
   compact?: boolean;
+  /** For short screens: leaves out the second line and the price per day. */
+  tight?: boolean;
   onSubscribed?: () => void;
 };
 
 /** What Plus gives, the plans and the button. Used by the paywall screen and the end of the free feed. */
-export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
+export function PaywallPanel({ reason, topic, compact, tight, onSubscribed }: Props) {
   const colors = useColors();
   const styles = useStyles();
   const picked = joinNames(useApp((s) => s.topics).map(topicLabel));
@@ -65,13 +73,14 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
     `No daily limit (free is ${FREE_DAILY_CARDS} cards a day)`,
     picked ? `Every topic feed, including ${picked}` : 'Every topic feed',
     `Save as many cards as you like (free is ${FREE_SAVES})`,
+    `All ${PAID_STYLES.length} manuscript card styles`,
     'Share cards without the watermark',
   ];
 
   return (
     <View>
       <Text style={[styles.title, compact && styles.titleCompact]}>{copy.title}</Text>
-      <Text style={styles.body}>{copy.body}</Text>
+      {!tight && <Text style={styles.body}>{copy.body}</Text>}
 
       {/* The wall at the end of the free feed has less room, so the plans do the talking there. */}
       {!compact && (
@@ -85,13 +94,13 @@ export function PaywallPanel({ reason, topic, compact, onSubscribed }: Props) {
         </View>
       )}
 
-      <Offer compact={compact} onSubscribed={onSubscribed} />
+      <Offer compact={compact} tight={tight} onSubscribed={onSubscribed} />
     </View>
   );
 }
 
 /** Yearly and Monthly, the button, the renewal terms, restore and the legal links. */
-export function Offer({ compact, onSubscribed }: { compact?: boolean; onSubscribed?: () => void }) {
+export function Offer({ compact, tight, onSubscribed }: { compact?: boolean; tight?: boolean; onSubscribed?: () => void }) {
   const styles = useStyles();
   const plans = usePlans();
   const [plan, setPlan] = useState<Plan>('yearly');
@@ -107,6 +116,7 @@ export function Offer({ compact, onSubscribed }: { compact?: boolean; onSubscrib
       <View style={[styles.plans, compact && styles.plansCompact]}>
         <PlanTiles
           plan={plan}
+          showDaily={!tight}
           onPick={(p) => {
             haptic.tap();
             setPlan(p);

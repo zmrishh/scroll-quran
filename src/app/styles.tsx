@@ -9,6 +9,7 @@ import { PASSAGES } from '@/data/content';
 import { ALL_STYLES_PRODUCT, CARD_STYLES, ownsStyle, PAID_STYLES as PAID, type CardStyle } from '@/data/styles';
 import { haptic } from '@/lib/feedback';
 import { buyStyle, isDemo, loadStylePrices, restorePurchases, useStylePrices } from '@/lib/purchases';
+import { openPaywall } from '@/lib/upsell';
 import { useApp } from '@/store/app-store';
 import { makeStyles, useColors } from '@/theme/theme';
 import { fonts, layout } from '@/theme/tokens';
@@ -22,9 +23,10 @@ export default function Styles() {
   const insets = useSafeAreaInsets();
   const inUse = useCardStyle();
   const owned = useApp((s) => s.ownedStyles);
+  const plus = useApp((s) => s.premium);
   const prices = useStylePrices();
   const [busy, setBusy] = useState(false);
-  const allOwned = PAID.every((s) => ownsStyle(s, owned));
+  const allOwned = PAID.every((s) => ownsStyle(s, owned, plus));
 
   useEffect(() => {
     loadStylePrices();
@@ -40,7 +42,7 @@ export default function Styles() {
   };
 
   const choose = async (s: CardStyle) => {
-    if (ownsStyle(s, owned) || (await buy(s.product!))) {
+    if (ownsStyle(s, owned, plus) || (await buy(s.product!))) {
       haptic.tap();
       useApp.getState().set({ cardStyle: s.id });
     }
@@ -69,10 +71,17 @@ export default function Styles() {
             <Text style={styles.bundlePrice}>{prices[ALL_STYLES_PRODUCT] ?? ''}</Text>
           </Pressable>
         )}
+        {!allOwned && (
+          <Pressable hitSlop={8} onPress={() => openPaywall('styles')} style={styles.withPlus} accessibilityRole="button">
+            <Text style={styles.withPlusText}>Or get every style with Plus</Text>
+            <Icon name="chevron-right" size={15} color={colors.gold} strokeWidth={2.2} />
+          </Pressable>
+        )}
+        {plus && <Text style={styles.included}>Every style is included with your Plus.</Text>}
 
         <View style={styles.grid}>
           {CARD_STYLES.map((s) => {
-            const has = ownsStyle(s, owned);
+            const has = ownsStyle(s, owned, plus);
             const active = inUse === s.id;
             return (
               <Pressable
@@ -130,6 +139,9 @@ const useStyles = makeStyles((colors) => ({
   bundleTitle: { fontFamily: fonts.uiMedium, fontSize: 16, color: colors.text },
   bundleNote: { fontFamily: fonts.ui, fontSize: 13, color: colors.read, marginTop: 2 },
   bundlePrice: { fontFamily: fonts.uiMedium, fontSize: 16, color: colors.gold },
+  withPlus: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', gap: 2, marginTop: 14, paddingVertical: 2 },
+  withPlusText: { fontFamily: fonts.uiMedium, fontSize: 14, color: colors.gold },
+  included: { fontFamily: fonts.uiMedium, fontSize: 14, color: colors.gold, marginTop: 14 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 20 },
   tile: { width: '48%', flexGrow: 1 },
   preview: {

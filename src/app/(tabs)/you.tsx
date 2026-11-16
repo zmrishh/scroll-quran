@@ -167,12 +167,12 @@ export default function YouScreen() {
               <Text style={styles.plusTitle}>Scroll Quran Plus</Text>
               <Text style={styles.plusBadge}>Active</Text>
             </View>
-            <Text style={styles.plusBody}>No daily limit, every topic feed, unlimited saves and clean shares.</Text>
+            <Text style={styles.plusBody}>No daily limit, every topic feed, unlimited saves, clean shares and every card style.</Text>
           </Surface>
         ) : (
           <Surface accent style={styles.plus}>
             <Text style={styles.plusTitle}>Scroll Quran Plus</Text>
-            <Text style={styles.plusBody}>No daily limit, every topic feed and unlimited saves.</Text>
+            <Text style={styles.plusBody}>No daily limit, every topic feed, unlimited saves and every card style.</Text>
             <PrimaryButton label="See Plus" onPress={() => openPaywall('welcome')} style={{ marginTop: 16 }} />
           </Surface>
         )}

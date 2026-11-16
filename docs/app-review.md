@@ -36,7 +36,7 @@ Paste into App Review Information → Notes:
 > "Not now" on the sign-in screen, or use Sign in with Apple.
 >
 > In-app purchases: Scroll Quran Plus (yearly and monthly) is offered after onboarding and when the free daily
-> cards run out in the feed. Card styles are under You → Card style. Restore Purchases is on
+> cards run out in the feed. Card styles are under You → Card style; Plus includes them, and they can also be bought one at a time. Restore Purchases is on
 > both screens.
 >
 > Location is requested only when you tap "Show today's prayers" on the Quran tab, and is used on the device to work out

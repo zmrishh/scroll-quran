@@ -95,7 +95,7 @@ function GlowLayer({ seed }: { seed: string }) {
 /** The style the cards should use: a preview's override, else the chosen one if it's owned, otherwise Glow. */
 export function useCardStyle(): CardStyleId {
   const forced = useContext(CardStyleOverride);
-  const chosen = useApp((s) => (ownsStyle(cardStyle(s.cardStyle), s.ownedStyles) ? s.cardStyle : 'glow'));
+  const chosen = useApp((s) => (ownsStyle(cardStyle(s.cardStyle), s.ownedStyles, s.premium) ? s.cardStyle : 'glow'));
   return forced ?? chosen;
 }
 

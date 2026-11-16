@@ -20,7 +20,7 @@ export default function Terms() {
             `Monthly and yearly plans renew automatically until you cancel. Cancel at least 24 hours before the current period ends to avoid the next charge.`,
             `Payment is taken from your ${ACCOUNT} when you confirm a purchase.`,
             `Manage or cancel a plan in your ${STORE} subscription settings. Deleting the app does not cancel it.`,
-            'Card styles are one-time purchases. Nothing renews.',
+            'Card styles bought on their own are one-time purchases, and nothing renews. Plus also includes every style while it lasts.',
             `Refunds are handled by ${Platform.OS === 'android' ? 'Google' : 'Apple'} under their own policies.`,
           ]}
         />

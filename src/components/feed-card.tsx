@@ -230,7 +230,8 @@ function LimitCard({ height }: { height: number }) {
 
   return (
     <View style={[styles.limit, { height, paddingTop: chrome.contentTop - 10, paddingBottom: 16 + chrome.tabBar }]}>
-      <PaywallPanel reason="limit" compact />
+      {/* A short screen leaves out the paywall's second line and the price per day, so everything fits. */}
+      <PaywallPanel reason="limit" compact tight={height < 700} />
       <Text style={styles.limitReset}>Your free cards come back in {resetIn}.</Text>
     </View>
   );
