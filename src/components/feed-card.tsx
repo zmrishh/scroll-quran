@@ -21,6 +21,7 @@ import { CheckInCard } from './cards/checkin-card';
 import { DuaCard, NameCard } from './cards/content-cards';
 import { DhikrCard } from './cards/dhikr-card';
 import { QuizCard } from './cards/quiz-card';
+import { UpdateCard } from './cards/update-card';
 import { Icon } from './icon';
 import { NoteSheet } from './note-sheet';
 import { PageBars } from './reading';
@@ -84,7 +85,8 @@ export function FeedCard({ item, height, active, near = active, showHint, onMood
   const [capturing, setCapturing] = useState(false);
   const [page, setPage] = useState(0);
   const [noteOpen, setNoteOpen] = useState(false);
-  const key = item.kind === 'quiz' || item.kind === 'ad' || item.kind === 'checkin' ? null : contentKey(item.kind, item.id);
+  const key =
+    item.kind === 'quiz' || item.kind === 'ad' || item.kind === 'checkin' || item.kind === 'update' ? null : contentKey(item.kind, item.id);
   const liked = useApp((s) => (key ? !!s.liked[key] : false));
   const saved = useApp((s) => (key ? !!s.saved[key] : false));
   const noted = useApp((s) => (key ? !!s.notes[key] : false));
@@ -101,6 +103,7 @@ export function FeedCard({ item, height, active, near = active, showHint, onMood
   }, [active, item]);
 
   if (item.kind === 'ad') return <AdCard height={height} near={near} />;
+  if (item.kind === 'update') return <UpdateCard height={height} />;
 
   const turn = (side: 'next' | 'prev') => {
     const next = side === 'next' ? page + 1 : page - 1;

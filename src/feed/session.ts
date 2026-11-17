@@ -1,16 +1,21 @@
 import type { Topic } from '@/data/content';
 import { moodInfo } from '@/data/moods';
+import { updateToOffer } from '@/lib/update';
 import { moodToday, useApp } from '@/store/app-store';
 
 import { createFeed, type FeedItem } from './engine';
 
 const CHECKIN_ITEM: FeedItem = { kind: 'checkin', key: 'checkin', topics: [] };
+const UPDATE_ITEM: FeedItem = { kind: 'update', key: 'update', topics: [] };
+/** Whether the update card has opened a feed since the app was opened. */
+let updateOffered = false;
 /** How strongly today's mood pulls the "For you" feed towards its topics. */
 const MOOD_BOOST = 20;
 /** Without Plus, the feed has one ad card after every this many cards. */
 export const AD_EVERY = 5;
 
-const counts = (i: FeedItem) => i.kind !== 'ad' && i.kind !== 'checkin';
+/** Whether an item is a card to read: not an ad, the check-in or the update card. Only these count as read. */
+export const counts = (i: FeedItem) => i.kind !== 'ad' && i.kind !== 'checkin' && i.kind !== 'update';
 
 /** Affinity scores with today's mood folded in. */
 function currentAffinity() {
@@ -44,10 +49,17 @@ export function createSession(topic: Topic | null) {
 
   return {
     topic,
-    /** The opening cards. "For you" starts the day with the heart check-in. */
+    /**
+     * The opening cards. "For you" starts the day with the heart check-in, and before anything else comes the update
+     * card, when the App Store has a newer version.
+     */
     start(n: number): FeedItem[] {
-      const checkIn = !topic && !moodToday(useApp.getState());
-      return checkIn ? [CHECKIN_ITEM, ...take(n)] : take(n);
+      const s = useApp.getState();
+      const checkIn = !topic && !moodToday(s);
+      // Once each time the app opens, not again on every change of topic.
+      const update = !updateOffered && !!updateToOffer(s);
+      if (update) updateOffered = true;
+      return [...(update ? [UPDATE_ITEM] : []), ...(checkIn ? [CHECKIN_ITEM] : []), ...take(n)];
     },
     /** `n` more cards, and the ads that fall between them. */
     take,

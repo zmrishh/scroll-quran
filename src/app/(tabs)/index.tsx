@@ -5,7 +5,7 @@ import { FeedCard } from '@/components/feed-card';
 import { FeedHeader } from '@/components/feed-header';
 import type { Topic } from '@/data/content';
 import type { FeedItem } from '@/feed/engine';
-import { createSession } from '@/feed/session';
+import { counts, createSession } from '@/feed/session';
 import { startAds } from '@/lib/ads';
 import { takePendingTopic } from '@/lib/upsell';
 import { useApp } from '@/store/app-store';
@@ -63,6 +63,8 @@ function Feed() {
   useEffect(
     () =>
       useApp.subscribe((s, prev) => {
+        // "Later" on the update card takes it out of the feed.
+        if (s.updateSkipped !== prev.updateSkipped) setItems((list) => list.filter((i) => i.kind !== 'update'));
         if (s.premium === prev.premium) return;
         const topic = s.premium ? takePendingTopic() : null;
         if (!s.premium || topic) changeTopicRef.current(topic);
@@ -78,13 +80,13 @@ function Feed() {
       const next = items[index];
       if (!next) return;
       const app = useApp.getState();
-      if (next.kind !== 'ad' && next.kind !== 'checkin' && !seen.current.has(next.key)) {
+      if (counts(next) && !seen.current.has(next.key)) {
         seen.current.add(next.key);
         app.recordView();
       }
       if (index === active) return;
       const dwell = Date.now() - activeSince.current;
-      if (prev && prev.kind !== 'ad' && prev.kind !== 'checkin') {
+      if (prev && counts(prev)) {
         if (dwell > 4000) app.nudge(prev.topics, 1);
         else if (dwell < 1200) app.nudge(prev.topics, -0.5);
       }
@@ -134,7 +136,7 @@ function Feed() {
               height={height}
               active={index === active}
               near={Math.abs(index - active) <= 1}
-              showHint={index === 0 && !hintSeen && item.kind !== 'checkin'}
+              showHint={index === 0 && !hintSeen && counts(item)}
               onMood={onMood}
             />
           )}

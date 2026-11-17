@@ -57,6 +57,10 @@ type State = {
   /** Which of the five prayers get an alert. */
   alertPrayers: Record<SalahKey, boolean>;
   appearance: AppearancePref;
+  /** The latest version on the App Store, as last heard (lib/update.ts). */
+  storeVersion: string | null;
+  /** The App Store version the reader put off with "Later"; it isn't offered again. */
+  updateSkipped: string | null;
   /** Store product IDs of card styles bought. With RevenueCat set up, refreshed from it. */
   ownedStyles: string[];
   totals: Totals;
@@ -112,6 +116,8 @@ type Actions = {
         | 'prayerAlerts'
         | 'alertPrayers'
         | 'appearance'
+        | 'storeVersion'
+        | 'updateSkipped'
       >
     >,
   ) => void;
@@ -163,6 +169,8 @@ const initial: State = {
   prayerAlerts: false,
   alertPrayers: { fajr: true, dhuhr: true, asr: true, maghrib: true, isha: true },
   appearance: 'light',
+  storeVersion: null,
+  updateSkipped: null,
   ownedStyles: [],
   totals: { views: 0, dhikr: 0, quizAnswered: 0, quizCorrect: 0, memorised: 0, ameen: 0 },
   hintSeen: false,

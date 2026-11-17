@@ -14,6 +14,7 @@ import { LaunchSplash } from '@/components/launch-splash';
 import { StreakCelebration } from '@/components/streak-celebration';
 import { startPrayerAlerts } from '@/lib/prayer-alerts';
 import { setupPurchases } from '@/lib/purchases';
+import { checkForUpdate } from '@/lib/update';
 import { useApp } from '@/store/app-store';
 import { PaletteOverride, ThemedStatusBar, useColors, useFeedColors, useThemeColors } from '@/theme/theme';
 import { palettes } from '@/theme/tokens';
@@ -112,6 +113,7 @@ export default function RootLayout() {
     if (!hydrated) return;
     setupPurchases();
     startPrayerAlerts();
+    checkForUpdate();
   }, [hydrated]);
 
   if (!ready) return null;

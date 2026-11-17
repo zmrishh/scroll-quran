@@ -2,14 +2,14 @@
   "expo": {
     "name": "Scroll Quran",
     "slug": "scroll-quran",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "scrollquran",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.scrollquran.app",
+      "bundleIdentifier": "com.kenesis.scrollquran",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSPhotoLibraryAddUsageDescription": "Lets you save the cards you share to your photo library."
@@ -75,7 +75,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.scrollquran.app",
+      "package": "com.kenesis.scrollquran",
       "blockedPermissions": [
         "android.permission.ACCESS_FINE_LOCATION"
       ]

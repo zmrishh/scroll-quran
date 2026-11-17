@@ -17,6 +17,7 @@ import { showAdChoices, useAds } from '@/lib/ads';
 import { deleteAccount, signOut } from '@/lib/auth';
 import { confirm } from '@/lib/confirm';
 import { isDemo, STORE } from '@/lib/purchases';
+import { newerVersion, openAppStore } from '@/lib/update';
 import { openPaywall } from '@/lib/upsell';
 import {
   currentStreak,
@@ -62,6 +63,7 @@ export default function YouScreen() {
   const s = useApp();
   const look = useCardStyle();
   const adChoices = useAds((a) => a.choices);
+  const update = newerVersion(s);
   const mood = moodToday(s);
   const namesMet = NAMES.filter((n) => s.seenNames[n.id]).length;
   const streak = currentStreak(s);
@@ -200,6 +202,7 @@ export default function YouScreen() {
           <Row label="Sources and licences" onPress={() => router.push('/about')} />
           <Row label="Privacy" divider onPress={() => router.push('/privacy')} />
           <Row label="Terms of use" divider onPress={() => router.push('/terms')} />
+          {update && <Row label={`Update to version ${update}`} divider onPress={openAppStore} />}
           {/* Only where the reader must be able to change their answer about ads (Europe, the UK). */}
           {adChoices && !s.premium && <Row label="Ad choices" divider onPress={showAdChoices} />}
           <Row

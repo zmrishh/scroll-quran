@@ -91,6 +91,14 @@ export default function Privacy() {
       </Block>
       <DocLink label="RevenueCat’s privacy policy" onPress={() => openLink(LINKS.revenueCatPrivacy)} />
 
+      {Platform.OS === 'ios' && (
+        <Block title="Updates">
+          When it opens, the app asks the App Store which version of Scroll Quran is the latest, so it can tell you when
+          there is an update. Nothing about you is sent with that question, beyond what any internet request carries, such
+          as your IP address.
+        </Block>
+      )}
+
       <Block title="Sharing cards">
         When you share a card, the image is made on your phone and handed straight to the app you pick. We don’t receive it.
       </Block>

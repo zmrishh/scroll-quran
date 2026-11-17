@@ -23,6 +23,7 @@ export type FeedItem =
     }
   | { kind: 'quiz'; key: string; quiz: Quiz; topics: readonly Topic[] }
   | { kind: 'ad'; key: string; topics: readonly Topic[] }
+  | { kind: 'update'; key: string; topics: readonly Topic[] }
   | { kind: 'checkin'; key: string; topics: readonly Topic[] };
 
 type Kind = 'ayah' | 'dua' | 'name' | 'dhikr' | 'quiz';
