@@ -6,9 +6,10 @@ import { useTabBarSpace } from '@/theme/layout';
 
 import { useCardStyle } from '@/components/card-style';
 import { Icon } from '@/components/icon';
+import { NamesCard } from '@/components/names-card';
 import { PrimaryButton } from '@/components/primary-button';
 import { Segmented } from '@/components/segmented';
-import { Bar, Ring, SectionHeader, Surface } from '@/components/ui';
+import { Ring, SectionHeader, Surface } from '@/components/ui';
 import { NAMES } from '@/data/content';
 import { cardStyle } from '@/data/styles';
 import { moodInfo } from '@/data/moods';
@@ -147,19 +148,7 @@ export default function YouScreen() {
         </View>
 
         <SectionHeader title="Names of Allah" detail={`${namesMet} of ${NAMES.length} met`} />
-        <Surface>
-          <Bar progress={namesMet / NAMES.length} />
-          <View style={styles.names}>
-            {NAMES.map((n) => {
-              const met = !!s.seenNames[n.id];
-              return (
-                <View key={n.id} style={[styles.name, met && styles.nameMet]}>
-                  {met ? <Text style={styles.nameText}>{n.arabic}</Text> : <View style={styles.nameDot} />}
-                </View>
-              );
-            })}
-          </View>
-        </Surface>
+        <NamesCard />
 
         {s.premium ? (
           <Surface accent style={styles.plus}>
@@ -167,12 +156,12 @@ export default function YouScreen() {
               <Text style={styles.plusTitle}>Scroll Quran Plus</Text>
               <Text style={styles.plusBadge}>Active</Text>
             </View>
-            <Text style={styles.plusBody}>No daily limit, every topic feed, unlimited saves, clean shares and every card style.</Text>
+            <Text style={styles.plusBody}>No daily limit, every topic feed, prayer alerts, unlimited saves, clean shares and every card style.</Text>
           </Surface>
         ) : (
           <Surface accent style={styles.plus}>
             <Text style={styles.plusTitle}>Scroll Quran Plus</Text>
-            <Text style={styles.plusBody}>No daily limit, every topic feed, unlimited saves and every card style.</Text>
+            <Text style={styles.plusBody}>No daily limit, every topic feed, prayer alerts, unlimited saves and every card style.</Text>
             <PrimaryButton label="See Plus" onPress={() => openPaywall('welcome')} style={{ marginTop: 16 }} />
           </Surface>
         )}
@@ -180,6 +169,7 @@ export default function YouScreen() {
         <SectionHeader title="Reading" />
         <Surface style={styles.group}>
           <Row label="Card style" detail={cardStyle(look).name} onPress={() => router.push('/styles')} />
+          <Row label="Prayer alerts" detail={s.premium && s.prayerAlerts ? 'On' : 'Off'} divider onPress={() => router.push('/prayer-times')} />
           <View style={[styles.setting, styles.divider]}>
             <Text style={styles.settingLabel}>Daily goal</Text>
             <Segmented value={String(s.dailyGoal)} options={GOAL_OPTIONS} onChange={(g) => s.set({ dailyGoal: Number(g) })} />
@@ -320,11 +310,6 @@ const useStyles = makeStyles((colors) => ({
   tile: { width: '30%', flexGrow: 1, padding: 14 },
   tileValue: { fontFamily: fonts.uiMedium, fontSize: 24, color: colors.text, fontVariant: ['tabular-nums'] },
   tileLabel: { fontFamily: fonts.ui, fontSize: 12, color: colors.quiet, marginTop: 2 },
-  names: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 16 },
-  name: { width: '18.4%', aspectRatio: 1.25, borderRadius: 10, backgroundColor: colors.page, alignItems: 'center', justifyContent: 'center' },
-  nameMet: { backgroundColor: colors.goldSoft },
-  nameText: { fontFamily: fonts.arabic, fontSize: 14, lineHeight: 28, color: colors.gold },
-  nameDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.line },
   plus: { marginTop: 30 },
   plusHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   plusTitle: { fontFamily: fonts.read, fontSize: 22, color: colors.text },

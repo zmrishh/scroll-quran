@@ -7,10 +7,10 @@ import { DHIKR, DUAS, NAMES, PASSAGES, passageEnglish, type Topic } from '@/data
 import type { CardStyleId } from '@/data/styles';
 import type { FeedItem } from '@/feed/engine';
 import { TabBarSpace, tabBarSpace } from '@/theme/layout';
-import { makeStyles } from '@/theme/theme';
-import { fonts } from '@/theme/tokens';
+import { makeStyles, PaletteOverride } from '@/theme/theme';
+import { fonts, type Colors } from '@/theme/tokens';
 
-import { CardStyleOverride } from './card-style';
+import { CardStyleOverride, paletteFor } from './card-style';
 import { FeedCard } from './feed-card';
 import { FeedHeader } from './feed-header';
 import { SurahView } from './surah-view';
@@ -195,7 +195,7 @@ export function StylesPreview() {
     return () => clearInterval(timer);
   }, []);
   return (
-    <Screen tab="feed">
+    <Screen tab="feed" ink={paletteFor(STYLES[i])}>
       <CardStyleOverride.Provider value={STYLES[i]}>
         <Animated.View key={STYLES[i]} entering={FadeIn.duration(500)}>
           <FeedCard item={card('ayah', passage('94:5-6').id)} height={CARD_HEIGHT} active={false} />
@@ -206,8 +206,19 @@ export function StylesPreview() {
   );
 }
 
-/** The app's page with its tab bar, the given tab lit. */
-function Screen({ tab, children }: { tab: Tab; children: ReactNode }) {
+/**
+ * The app's page with its tab bar, the given tab lit. It shows the app as a new reader has it, in the app's own
+ * theme whatever style the reader has, or in `ink` when the cards on it are shown in a style with its own colours.
+ */
+function Screen({ tab, ink, children }: { tab: Tab; ink?: Colors | null; children: ReactNode }) {
+  return (
+    <PaletteOverride.Provider value={ink ?? 'base'}>
+      <Page tab={tab}>{children}</Page>
+    </PaletteOverride.Provider>
+  );
+}
+
+function Page({ tab, children }: { tab: Tab; children: ReactNode }) {
   const styles = useStyles();
   return (
     <TabBarSpace.Provider value={tabBarSpace(INSETS.bottom)}>

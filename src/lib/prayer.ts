@@ -59,6 +59,8 @@ export function regionalMethod(): MethodId {
 export const methodName = (id: MethodId) => METHODS.find((m) => m.id === id)?.name ?? id;
 
 export type Salah = { key: 'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 'isha'; name: string; at: Date };
+export type SalahKey = Salah['key'];
+export const SALAH_KEYS: readonly SalahKey[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
 /** The five prayers for a day at a place. On Fridays, Dhuhr is shown as Jumu'ah. */
 export function dayTimes(place: { lat: number; lng: number }, method: MethodId, asr: AsrSchool, date: Date): Salah[] {
@@ -75,6 +77,30 @@ export function dayTimes(place: { lat: number; lng: number }, method: MethodId, 
     { key: 'maghrib', name: 'Maghrib', at: t.maghrib },
     { key: 'isha', name: 'Isha', at: t.isha },
   ];
+}
+
+/**
+ * The prayers after `from` whose keys are in `keys`, in order: at most `count` of them, looking no more than `days`
+ * days ahead. A time that can't be worked out (far north in summer) is left out.
+ */
+export function nextPrayers(
+  place: { lat: number; lng: number },
+  method: MethodId,
+  asr: AsrSchool,
+  keys: readonly SalahKey[],
+  from: Date,
+  count: number,
+  days: number,
+): Salah[] {
+  const found: Salah[] = [];
+  const date = new Date(from);
+  for (let d = 0; d < days && found.length < count; d++) {
+    for (const p of dayTimes(place, method, asr, date)) {
+      if (found.length < count && keys.includes(p.key) && p.at > from) found.push(p);
+    }
+    date.setDate(date.getDate() + 1);
+  }
+  return found;
 }
 
 /** Today's prayers and the next one to come: tomorrow's Fajr once Isha has passed. */

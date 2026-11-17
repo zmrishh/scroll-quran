@@ -26,7 +26,7 @@ channel, and a production build refuses to start without the RevenueCat key.
    other platforms in the text or images.
 8. **Description** without "Android", "Google Play" or "free trial".
 9. **Test on a real iPhone** with a sandbox Apple ID: buy Plus, restore it, buy and restore a card style, sign in with
-   Apple, delete the account, share a card and tap Save Image, show prayer times.
+   Apple, delete the account, share a card and tap Save Image, show prayer times, turn on prayer alerts.
 
 ## Note for the reviewer
 
@@ -41,6 +41,9 @@ Paste into App Review Information → Notes:
 >
 > Location is requested only when you tap "Show today's prayers" on the Quran tab, and is used on the device to work out
 > prayer times. It is not sent anywhere.
+>
+> Prayer alerts (part of Plus) are local notifications scheduled on the device: Quran tab → tap the prayer card →
+> Prayer alerts. Notification permission is asked only when you turn them on.
 >
 > The Arabic text is the Tanzil Quran Text (CC BY 3.0) and the English is Pickthall's public-domain translation. The art
 > is public-domain illumination from The Metropolitan Museum of Art's Open Access collection.

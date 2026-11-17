@@ -8,6 +8,7 @@ import { useApp, type ArabicSize } from '@/store/app-store';
 import { makeStyles, useColors } from '@/theme/theme';
 import { fonts } from '@/theme/tokens';
 
+import { useFolio } from './card-style';
 import { arabicSize } from './reading';
 
 const SIZE_SCALE: Record<ArabicSize, number> = { s: 0.88, m: 1, l: 1.14 };
@@ -23,6 +24,7 @@ type Token = { text: string; marker: boolean };
  */
 export function MemoriseArabic({ ayat, size }: { ayat: Passage['ayat']; size: ArabicSize }) {
   const styles = useStyles();
+  const folio = useFolio();
   const tokens: Token[] = ayat.flatMap((a) => [
     ...a.ar.split(' ').map((w) => ({ text: w, marker: false })),
     { text: `۝${arabicNumber(a.n)}`, marker: true },
@@ -46,7 +48,7 @@ export function MemoriseArabic({ ayat, size }: { ayat: Passage['ayat']; size: Ar
   let wordIndex = -1;
   return (
     <View>
-      <View style={styles.words}>
+      <View style={[styles.words, folio && styles.wordsCentre]}>
         {tokens.map((t, i) => {
           if (t.marker) {
             return (
@@ -102,6 +104,7 @@ export function MemoriseArabic({ ayat, size }: { ayat: Passage['ayat']; size: Ar
 export function MemoriseToggle({ on, onPress }: { on: boolean; onPress: () => void }) {
   const colors = useColors();
   const styles = useStyles();
+  const folio = useFolio();
   return (
     <Pressable
       hitSlop={10}
@@ -109,7 +112,7 @@ export function MemoriseToggle({ on, onPress }: { on: boolean; onPress: () => vo
         haptic.tap();
         onPress();
       }}
-      style={styles.toggle}
+      style={[styles.toggle, folio && styles.toggleCentre]}
       accessibilityRole="button">
       <Text style={[styles.toggleText, on && { color: colors.gold }]}>{on ? 'Done memorising' : 'Memorise this'}</Text>
     </Pressable>
@@ -118,7 +121,8 @@ export function MemoriseToggle({ on, onPress }: { on: boolean; onPress: () => vo
 
 const useStyles = makeStyles((colors) => ({
   words: { flexDirection: 'row-reverse', flexWrap: 'wrap', alignItems: 'center' },
-  word: { fontFamily: fonts.quran, color: colors.text, writingDirection: 'rtl' },
+  wordsCentre: { justifyContent: 'center' },
+  word: { fontFamily: fonts.quran, color: colors.script, writingDirection: 'rtl' },
   hidden: { color: 'transparent', backgroundColor: colors.line, borderRadius: 8 },
   marker: { fontFamily: fonts.quran, color: colors.gold, marginHorizontal: 4 },
   bar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
@@ -127,5 +131,6 @@ const useStyles = makeStyles((colors) => ({
   action: { fontFamily: fonts.uiMedium, fontSize: 13, color: colors.read },
   done: { fontFamily: fonts.read, fontSize: 15, lineHeight: 22, color: colors.gold, marginTop: 10 },
   toggle: { alignSelf: 'flex-start', marginTop: 20 },
+  toggleCentre: { alignSelf: 'center' },
   toggleText: { fontFamily: fonts.uiMedium, fontSize: 13.5, color: colors.quiet },
 }));

@@ -9,6 +9,8 @@ import { useApp } from '@/store/app-store';
 import { makeStyles, useColors } from '@/theme/theme';
 import { fonts } from '@/theme/tokens';
 
+import { useFolio } from '../card-style';
+
 const RING = 210;
 const RADIUS = 92;
 
@@ -19,6 +21,7 @@ export function DhikrCard({ dhikr }: { dhikr: Dhikr }) {
   const [count, setCount] = useState(0);
   const addDhikr = useApp((s) => s.addDhikr);
   const pulse = useSharedValue(1);
+  const centre = useFolio() ? styles.centre : null;
   const done = count >= dhikr.target;
 
   const onTap = () => {
@@ -40,9 +43,9 @@ export function DhikrCard({ dhikr }: { dhikr: Dhikr }) {
 
   return (
     <>
-      <Text style={styles.arabic}>{dhikr.arabic}</Text>
-      <Text style={styles.translit}>{dhikr.translit}</Text>
-      <Text style={styles.meaning}>{dhikr.meaning}</Text>
+      <Text style={[styles.arabic, centre]}>{dhikr.arabic}</Text>
+      <Text style={[styles.translit, centre]}>{dhikr.translit}</Text>
+      <Text style={[styles.meaning, centre]}>{dhikr.meaning}</Text>
 
       <Pressable onPress={onTap} accessibilityRole="button" accessibilityLabel={`Count ${dhikr.translit}`} style={styles.ringPress}>
         <Animated.View style={[styles.ring, pulseStyle]}>
@@ -73,9 +76,10 @@ export function DhikrCard({ dhikr }: { dhikr: Dhikr }) {
 }
 
 const useStyles = makeStyles((colors) => ({
-  arabic: { fontFamily: fonts.arabic, fontSize: 40, lineHeight: 82, color: colors.text, textAlign: 'right', writingDirection: 'rtl' },
+  arabic: { fontFamily: fonts.arabic, fontSize: 40, lineHeight: 82, color: colors.script, textAlign: 'right', writingDirection: 'rtl' },
   translit: { fontFamily: fonts.uiMedium, fontSize: 18, color: colors.text, marginTop: 4 },
   meaning: { fontFamily: fonts.read, fontSize: 17, lineHeight: 25, color: colors.read, marginTop: 4 },
+  centre: { textAlign: 'center' },
   ringPress: { alignSelf: 'center', marginTop: 34 },
   ring: { width: RING, height: RING, alignItems: 'center', justifyContent: 'center' },
   count: { fontFamily: fonts.ui, fontSize: 56, lineHeight: 62, color: colors.text, fontVariant: ['tabular-nums'] },

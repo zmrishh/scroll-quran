@@ -8,6 +8,7 @@ import { useApp, type ArabicSize, type Display } from '@/store/app-store';
 import { makeStyles, useColors } from '@/theme/theme';
 import { fonts } from '@/theme/tokens';
 
+import { useFolio } from '../card-style';
 import { canMemorise, MemoriseArabic, MemoriseToggle } from '../memorise';
 import { Arabic, Translation, translationSize } from '../reading';
 
@@ -16,9 +17,10 @@ export function DuaCard({ dua, display, size }: { dua: Dua; display: Display; si
   const styles = useStyles();
   const en = passageEnglish(dua);
   const [memorising, setMemorising] = useState(false);
+  const folio = useFolio();
   return (
     <>
-      <Text style={styles.when}>
+      <Text style={[styles.when, folio && styles.centre]}>
         <Text style={styles.whenTitle}>{dua.title}. </Text>
         {dua.when}
       </Text>
@@ -28,7 +30,7 @@ export function DuaCard({ dua, display, size }: { dua: Dua; display: Display; si
           <Translation text={en} keyText={dua.key} fontSize={translationSize(en.length)} quietRest />
         </View>
       )}
-      <View style={styles.duaActions}>
+      <View style={[styles.duaActions, folio && styles.duaActionsCentre]}>
         <AmeenButton duaKey={contentKey('dua', dua.id)} />
         {display !== 'english' && canMemorise(dua.ayat) && (
           <MemoriseToggle on={memorising} onPress={() => setMemorising(!memorising)} />
@@ -70,13 +72,14 @@ function AmeenButton({ duaKey }: { duaKey: string }) {
 /** A Name of Allah: the Arabic large, then its meaning and one line to sit with. */
 export function NameCard({ name }: { name: DivineName }) {
   const styles = useStyles();
+  const centre = useFolio() ? styles.centre : null;
   return (
     <>
-      <Text style={styles.nameArabic}>{name.arabic}</Text>
-      <Text style={styles.translit}>{name.translit}</Text>
-      <Text style={styles.meaning}>{name.meaning}</Text>
-      <Text style={styles.reflection}>{name.reflection}</Text>
-      <Text style={styles.root}>
+      <Text style={[styles.nameArabic, centre]}>{name.arabic}</Text>
+      <Text style={[styles.translit, centre]}>{name.translit}</Text>
+      <Text style={[styles.meaning, centre]}>{name.meaning}</Text>
+      <Text style={[styles.reflection, centre]}>{name.reflection}</Text>
+      <Text style={[styles.root, centre]}>
         Root <Text style={styles.rootLetters}>{name.root.join(' ')}</Text> · {name.rootSense}
       </Text>
     </>
@@ -87,6 +90,8 @@ const useStyles = makeStyles((colors) => ({
   when: { fontFamily: fonts.ui, fontSize: 14, lineHeight: 20, color: colors.quiet, marginBottom: 22 },
   whenTitle: { fontFamily: fonts.uiMedium, color: colors.read },
   gap: { marginTop: 22 },
+  centre: { textAlign: 'center' },
+  duaActionsCentre: { justifyContent: 'center', gap: 20 },
   duaActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 22 },
   ameenRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   ameen: { height: 38, paddingHorizontal: 20, borderRadius: 19, borderWidth: 1, borderColor: colors.gold, justifyContent: 'center' },

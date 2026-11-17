@@ -1,14 +1,14 @@
 import { GlassView, isGlassEffectAPIAvailable, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { usePathname } from 'expo-router';
 import type { TabListProps, TabTriggerSlotProps } from 'expo-router/ui';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { haptic } from '@/lib/feedback';
 import { TAB_BAR } from '@/theme/layout';
-import { makeStyles, useColors } from '@/theme/theme';
+import { makeStyles, PaletteOverride, useColors, useFeedColors } from '@/theme/theme';
 import { fonts } from '@/theme/tokens';
 
 import { Icon, type IconName } from './icon';
@@ -22,14 +22,27 @@ const GLASS = Platform.OS === 'ios' && isLiquidGlassAvailable() && isGlassEffect
 
 /**
  * The tab bar as iOS 26 draws it: a capsule floating just above the home indicator, with a highlight that slides on
- * a spring to the tab you pick. `active` sets the tab directly, for previews that aren't on a real route.
+ * a spring to the tab you pick. Over the feed it takes the feed's colours, which in a card style's world are dark in
+ * the light theme too. `active` sets the tab directly, for previews that aren't on a real route; those keep the
+ * colours of whatever they are shown in.
  */
-export function BottomBar({ children, active, ...props }: TabListProps & { active?: number }) {
-  const styles = useStyles();
-  const insets = useSafeAreaInsets();
+export function BottomBar({ active, ...props }: TabListProps & { active?: number }) {
   const pathname = usePathname();
+  const around = useContext(PaletteOverride);
+  const feed = useFeedColors();
   const fromRoute = ROUTES.findIndex((r) => (r === '/' ? pathname === '/' : pathname.startsWith(r)));
   const index = active ?? Math.max(0, fromRoute);
+  return (
+    <PaletteOverride.Provider value={(active === undefined && index === 0 && feed) || around}>
+      <Bar {...props} index={index} />
+    </PaletteOverride.Provider>
+  );
+}
+
+function Bar({ children, index, ...props }: TabListProps & { index: number }) {
+  const colors = useColors();
+  const styles = useStyles();
+  const insets = useSafeAreaInsets();
   const [width, setWidth] = useState(0);
   const x = useSharedValue(index);
 
@@ -37,13 +50,15 @@ export function BottomBar({ children, active, ...props }: TabListProps & { activ
     x.set(withSpring(index, { damping: 18, stiffness: 230, mass: 0.7 }));
   }, [index, x]);
 
+  // The row is inset by INSET at each end, and each button takes a quarter of what's left: exactly the highlight's
+  // own slot, so the icon and label sit in the middle of it. `width` is the row's, measured where the buttons are.
   const slot = (width - INSET * 2) / ROUTES.length;
   const lens = useAnimatedStyle(() => ({ width: slot, transform: [{ translateX: INSET + x.get() * slot }] }));
 
   const capsule = (
     <>
       {width > 0 && <Animated.View pointerEvents="none" style={[styles.lens, lens]} />}
-      <View {...props} style={styles.row}>
+      <View {...props} style={styles.row} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
         {children}
       </View>
     </>
@@ -52,11 +67,11 @@ export function BottomBar({ children, active, ...props }: TabListProps & { activ
   return (
     <View pointerEvents="box-none" style={[styles.wrap, { paddingBottom: Math.max(insets.bottom - 8, 12) }]}>
       {GLASS ? (
-        <GlassView glassEffectStyle="regular" style={styles.capsule} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+        <GlassView glassEffectStyle="regular" colorScheme={colors.scheme} style={styles.capsule}>
           {capsule}
         </GlassView>
       ) : (
-        <View style={[styles.capsule, styles.frosted]} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+        <View style={[styles.capsule, styles.frosted]}>
           {capsule}
         </View>
       )}
@@ -102,12 +117,13 @@ const useStyles = makeStyles((colors) => ({
   },
   lens: {
     position: 'absolute',
+    left: 0,
     top: INSET,
     bottom: INSET,
     borderRadius: (TAB_BAR.height - INSET * 2) / 2,
     backgroundColor: `rgba(${colors.textRgb},0.07)`,
   },
-  row: { flex: 1, flexDirection: 'row' },
+  row: { flex: 1, flexDirection: 'row', paddingHorizontal: INSET },
   button: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2 },
   label: { fontFamily: fonts.uiMedium, fontSize: 10.5 },
 }));

@@ -28,8 +28,10 @@ function copyFor(reason: PaywallReason, topic: Topic | undefined, picked: string
     case 'styles':
       return {
         title: 'Every card style comes with Plus.',
-        body: `Plus opens every topic feed, takes away the daily limit and includes all ${PAID_STYLES.length} manuscript styles.`,
+        body: `Plus opens every topic feed, takes away the daily limit and includes all ${PAID_STYLES.length} paid card styles.`,
       };
+    case 'alerts':
+      return { title: 'Prayer alerts come with Plus.', body: 'Plus sends an alert at every prayer time and takes away the daily limit.' };
     case 'topic':
       return {
         title: `The ${topic ? topicLabel(topic) : 'topic'} feed is part of Plus.`,
@@ -72,9 +74,9 @@ export function PaywallPanel({ reason, topic, compact, tight, onSubscribed }: Pr
   const benefits = [
     `No daily limit (free is ${FREE_DAILY_CARDS} cards a day)`,
     picked ? `Every topic feed, including ${picked}` : 'Every topic feed',
+    'An alert at every prayer time',
     `Save as many cards as you like (free is ${FREE_SAVES})`,
-    `All ${PAID_STYLES.length} manuscript card styles`,
-    'Share cards without the watermark',
+    `All ${PAID_STYLES.length} paid card styles`,
   ];
 
   return (

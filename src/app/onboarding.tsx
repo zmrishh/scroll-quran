@@ -15,7 +15,8 @@ import { SignInPanel } from '@/components/sign-in-panel';
 import { TOPICS, topicLabel, type Topic } from '@/data/content';
 import { haptic } from '@/lib/feedback';
 import { DAILY_GOALS, useApp } from '@/store/app-store';
-import { makeStyles, useColors } from '@/theme/theme';
+import { CardStyleOverride } from '@/components/card-style';
+import { makeStyles, PaletteOverride, useColors } from '@/theme/theme';
 import { eyebrow, fonts, layout } from '@/theme/tokens';
 
 /**
@@ -65,13 +66,27 @@ function headFor(step: Step, names: string): { title: string; sub?: string } | n
     case 'value':
       return { title: 'Give the Quran fifteen minutes a day.' };
     case 'plans':
-      return { title: 'Start your year with the Quran.', sub: 'No daily limit, every topic feed and every manuscript style.' };
+      return { title: 'Start your year with the Quran.', sub: 'No daily limit, every topic feed, prayer alerts and every card style.' };
     default:
       return null;
   }
 }
 
-export default function Onboarding() {
+/**
+ * The intro comes before anyone has chosen or bought a card style, and can be replayed later from You. So it is
+ * always in the app's own theme, with the cards on its phone in the style everyone starts with.
+ */
+export default function OnboardingScreen() {
+  return (
+    <PaletteOverride.Provider value="base">
+      <CardStyleOverride.Provider value="glow">
+        <Onboarding />
+      </CardStyleOverride.Provider>
+    </PaletteOverride.Provider>
+  );
+}
+
+function Onboarding() {
   const colors = useColors();
   const styles = useStyles();
   const insets = useSafeAreaInsets();

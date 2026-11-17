@@ -104,6 +104,14 @@
         {
           "locationWhenInUsePermission": "Scroll Quran uses your location to work out your prayer times."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#C6A04E",
+          "enableRemoteNotifications": false
+        }
       ]
     ],
     "experiments": {

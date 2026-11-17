@@ -50,6 +50,8 @@ function Sheet({ noteKey, source, onClose }: Omit<Props, 'open'>) {
           maxLength={MAX}
           style={styles.input}
           selectionColor={colors.gold}
+          // The sheet can be dark in the light theme (over the feed in a card style's world); the keyboard goes with it.
+          keyboardAppearance={colors.scheme}
         />
         <View style={styles.row}>
           <View style={styles.buttons}>

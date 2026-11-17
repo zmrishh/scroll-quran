@@ -4,15 +4,19 @@ import type { Topic } from '@/data/content';
 import { FREE_SAVES, useApp } from '@/store/app-store';
 
 import { haptic } from './feedback';
+import { turnOnPrayerAlerts } from './prayer-alerts';
 
-export type PaywallReason = 'welcome' | 'limit' | 'saves' | 'topic' | 'styles';
+export type PaywallReason = 'welcome' | 'limit' | 'saves' | 'topic' | 'styles' | 'alerts';
 
-/** What the paywall interrupted, finished once Plus turns on: the card being saved, or the topic being opened. */
-type Pending = { save: { key: string; topics: readonly Topic[] } } | { topic: Topic };
+/**
+ * What the paywall interrupted, finished once Plus turns on: the card being saved, the topic being opened, or prayer
+ * alerts being switched on.
+ */
+type Pending = { save: { key: string; topics: readonly Topic[] } } | { topic: Topic } | { alerts: true };
 let pending: Pending | null = null;
 
 export function openPaywall(reason: PaywallReason, topic?: Topic) {
-  pending = reason === 'topic' && topic ? { topic } : null;
+  pending = reason === 'topic' && topic ? { topic } : reason === 'alerts' ? { alerts: true } : null;
   router.push({ pathname: '/paywall', params: topic ? { reason, topic } : { reason } });
 }
 
@@ -42,7 +46,13 @@ export function saveOrUpsell(key: string, topics: readonly Topic[]) {
 }
 
 useApp.subscribe((s, prev) => {
-  if (!s.premium || prev.premium || !pending || !('save' in pending)) return;
+  if (!s.premium || prev.premium || !pending) return;
+  if ('alerts' in pending) {
+    pending = null;
+    turnOnPrayerAlerts();
+    return;
+  }
+  if (!('save' in pending)) return;
   const { key, topics } = pending.save;
   pending = null;
   if (!s.saved[key]) s.toggleSave(key, topics);

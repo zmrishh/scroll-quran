@@ -7,6 +7,8 @@ import type { ArabicSize } from '@/store/app-store';
 import { makeStyles, useColors } from '@/theme/theme';
 import { fonts } from '@/theme/tokens';
 
+import { useFolio } from './card-style';
+
 const SIZE_SCALE: Record<ArabicSize, number> = { s: 0.88, m: 1, l: 1.14 };
 
 // Tanzil's 1:1, shown as its own line above passages that open a surah.
@@ -31,12 +33,13 @@ export function translationSize(chars: number) {
 /** The Arabic of a passage, right-aligned, with numbered ayah markers. */
 export function Arabic({ ayat, bismillah, size, boost = 0 }: { ayat: Passage['ayat']; bismillah?: boolean; size: ArabicSize; boost?: number }) {
   const styles = useStyles();
+  const centre = useFolio() ? styles.centre : null;
   const chars = ayat.reduce((s, a) => s + a.ar.length, 0);
   const fs = (arabicSize(chars) + boost) * SIZE_SCALE[size];
   return (
     <View>
-      {bismillah && <Text style={styles.bismillah}>{BISMILLAH}</Text>}
-      <Text style={[styles.arabic, { fontSize: fs, lineHeight: fs * 1.9 }]}>
+      {bismillah && <Text style={[styles.bismillah, centre]}>{BISMILLAH}</Text>}
+      <Text style={[styles.arabic, centre, { fontSize: fs, lineHeight: fs * 1.9 }]}>
         {ayat.map((a, i) => (
           <Text key={a.n}>
             {a.ar}
@@ -64,8 +67,9 @@ type TranslationProps = {
 export function Translation({ text, keyText, fontSize, blank, quietRest }: TranslationProps) {
   const styles = useStyles();
   const [revealed, setRevealed] = useState(false);
+  const centre = useFolio() ? styles.centre : null;
   const ks = keyText ? text.indexOf(keyText) : -1;
-  const style = [styles.read, { fontSize, lineHeight: fontSize * 1.55 }];
+  const style = [styles.read, centre, { fontSize, lineHeight: fontSize * 1.55 }];
   if (ks < 0) return <Text style={style}>{text}</Text>;
 
   const before = text.slice(0, ks);
@@ -92,7 +96,7 @@ export function Translation({ text, keyText, fontSize, blank, quietRest }: Trans
         )}
         <Text style={rest}>{after}</Text>
       </Text>
-      {hidden && <Text style={styles.blankHint}>Tap the gap to see the missing words</Text>}
+      {hidden && <Text style={[styles.blankHint, centre]}>Tap the gap to see the missing words</Text>}
     </View>
   );
 }
@@ -113,12 +117,14 @@ export function PageBars({ count, index, top }: { count: number; index: number; 
 /** Small grey line under the content: a hint, a context line. */
 export function Note({ children, style }: { children: ReactNode; style?: object }) {
   const styles = useStyles();
-  return <Text style={[styles.note, style]}>{children}</Text>;
+  const centre = useFolio() ? styles.centre : null;
+  return <Text style={[styles.note, centre, style]}>{children}</Text>;
 }
 
 const useStyles = makeStyles((colors) => ({
   bismillah: { fontFamily: fonts.quran, fontSize: 17, lineHeight: 34, color: colors.gold, textAlign: 'right', writingDirection: 'rtl' },
-  arabic: { fontFamily: fonts.quran, color: colors.text, textAlign: 'right', writingDirection: 'rtl' },
+  arabic: { fontFamily: fonts.quran, color: colors.script, textAlign: 'right', writingDirection: 'rtl' },
+  centre: { textAlign: 'center', textShadowColor: `rgba(${colors.pageRgb},0.9)`, textShadowRadius: 10, textShadowOffset: { width: 0, height: 0 } },
   marker: { color: colors.gold },
   read: { fontFamily: fonts.read, color: colors.read },
   key: { color: colors.text },

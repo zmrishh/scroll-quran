@@ -2,16 +2,16 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { CardStyleLayer, useCardStyle } from '@/components/card-style';
+import { CardStyleLayer, paletteFor, useCardStyle } from '@/components/card-style';
 import { Icon } from '@/components/icon';
 import { CloseButton } from '@/components/ui';
 import { PASSAGES } from '@/data/content';
-import { ALL_STYLES_PRODUCT, CARD_STYLES, ownsStyle, PAID_STYLES as PAID, type CardStyle } from '@/data/styles';
+import { ALL_STYLES_PRODUCT, cardStyle, CARD_STYLES, ownsStyle, PAID_STYLES as PAID, type CardStyle, type CardStyleId } from '@/data/styles';
 import { haptic } from '@/lib/feedback';
 import { buyStyle, isDemo, loadStylePrices, restorePurchases, useStylePrices } from '@/lib/purchases';
 import { openPaywall } from '@/lib/upsell';
 import { useApp } from '@/store/app-store';
-import { makeStyles, useColors } from '@/theme/theme';
+import { makeStyles, PaletteOverride, useColors } from '@/theme/theme';
 import { fonts, layout } from '@/theme/tokens';
 
 const SAMPLE = PASSAGES.find((p) => p.id === '94:5-6')!.ayat[0];
@@ -55,7 +55,7 @@ export default function Styles() {
           <Text style={styles.title}>Card styles</Text>
           <CloseButton />
         </View>
-        <Text style={styles.sub}>Illumination from Quran manuscripts at The Met, on every card you read and share.</Text>
+        <Text style={styles.sub}>A world of light behind every card you read and share.</Text>
 
         {!allOwned && (
           <Pressable
@@ -80,7 +80,9 @@ export default function Styles() {
         {plus && <Text style={styles.included}>Every style is included with your Plus.</Text>}
 
         <View style={styles.grid}>
-          {CARD_STYLES.map((s) => {
+          {/* An empty cell after an odd last tile keeps it the same size as the others. */}
+          {[...CARD_STYLES, ...(CARD_STYLES.length % 2 ? [null] : [])].map((s) => {
+            if (!s) return <View key="spacer" style={styles.tile} />;
             const has = ownsStyle(s, owned, plus);
             const active = inUse === s.id;
             return (
@@ -91,13 +93,9 @@ export default function Styles() {
                 accessibilityLabel={`${s.name} style${active ? ', in use' : has ? '' : `, ${prices[s.product!] ?? ''}`}`}
                 onPress={() => choose(s)}
                 style={({ pressed }) => [styles.tile, pressed && { opacity: 0.8 }]}>
-                <View style={[styles.preview, active && styles.previewOn]}>
-                  <CardStyleLayer style={s.id} height={TILE_HEIGHT} contentTop={24} contentBottom={22} seed="ayah:94:5-6" />
-                  <View style={styles.previewText}>
-                    <Text style={styles.previewArabic}>{SAMPLE.ar}</Text>
-                    <Text style={styles.previewEnglish}>{SAMPLE.en}</Text>
-                  </View>
-                </View>
+                <PaletteOverride.Provider value={paletteFor(s.id) ?? 'base'}>
+                  <StylePreview id={s.id} active={active} />
+                </PaletteOverride.Provider>
                 <View style={styles.tileFoot}>
                   <Text style={styles.tileName}>{s.name}</Text>
                   {active ? (
@@ -116,6 +114,21 @@ export default function Styles() {
         </Pressable>
         {isDemo && <Text style={styles.demo}>Demo build: no payment is taken.</Text>}
       </ScrollView>
+    </View>
+  );
+}
+
+/** A style as a small card, in the style's own colours. */
+function StylePreview({ id, active }: { id: CardStyleId; active: boolean }) {
+  const styles = useStyles();
+  const world = cardStyle(id).world;
+  return (
+    <View style={[styles.preview, active && styles.previewOn]}>
+      <CardStyleLayer style={id} seed="ayah:94:5-6" />
+      <View style={[styles.previewText, world && styles.previewInWorld]}>
+        <Text style={styles.previewArabic}>{SAMPLE.ar}</Text>
+        <Text style={styles.previewEnglish}>{SAMPLE.en}</Text>
+      </View>
     </View>
   );
 }
@@ -153,8 +166,9 @@ const useStyles = makeStyles((colors) => ({
     borderColor: colors.line,
   },
   previewOn: { borderColor: colors.gold, borderWidth: 1.5 },
+  previewInWorld: { backgroundColor: `rgba(${colors.pageRgb},0.35)` },
   previewText: { flex: 1, justifyContent: 'center', paddingHorizontal: 22 },
-  previewArabic: { fontFamily: fonts.quran, fontSize: 19, lineHeight: 38, color: colors.text, textAlign: 'center', writingDirection: 'rtl' },
+  previewArabic: { fontFamily: fonts.quran, fontSize: 19, lineHeight: 38, color: colors.script, textAlign: 'center', writingDirection: 'rtl' },
   previewEnglish: { fontFamily: fonts.read, fontSize: 12, lineHeight: 17, color: colors.read, textAlign: 'center', marginTop: 4 },
   tileFoot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4, paddingTop: 8 },
   tileName: { fontFamily: fonts.uiMedium, fontSize: 14.5, color: colors.text },

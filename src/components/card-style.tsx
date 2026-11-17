@@ -4,56 +4,84 @@ import { createContext, useContext, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 
-import { ART, GLOW } from '@/data/art';
+import { GLOW } from '@/data/art';
+import { SCENES } from '@/data/scenes';
 import { cardStyle, ownsStyle, type CardStyleId } from '@/data/styles';
 import { useApp } from '@/store/app-store';
 import { makeStyles, useColors } from '@/theme/theme';
+import { inks } from '@/theme/tokens';
 
 /** Shows cards in a given style regardless of the reader's choice, for previews such as onboarding's. */
 export const CardStyleOverride = createContext<CardStyleId | null>(null);
 
-type Props = {
-  style: CardStyleId;
-  height: number;
-  /** Space the header and footer take, so the frame sits between them. */
-  contentTop: number;
-  contentBottom: number;
-  /** The card's key, so Glow gives each card its own background and keeps it. */
-  seed?: string;
+/**
+ * True inside a card of scripture set in one of the worlds. Those cards are set like a poster: everything centred in
+ * the scene's light. The reading components check it to centre their lines.
+ */
+export const Folio = createContext(false);
+export const useFolio = () => useContext(Folio);
+
+/**
+ * The colours a style gives its cards, or null for Glow and Plain, which follow the app's theme. A world's cards are
+ * dark in both themes, like its scenes.
+ */
+export const paletteFor = (style: CardStyleId) => {
+  const world = cardStyle(style).world;
+  return world ? inks[world].dark : null;
 };
 
 /**
- * The art behind a card. Glow: a blurred manuscript page. The paid styles: illumination across the top and a
- * strip along the bottom, both fading into the page so the verse keeps a plain dark ground, and the ruled frame
- * between them.
+ * What's behind a card. Glow: a blurred manuscript page. Plain: nothing. The worlds: one of the world's scenes, a
+ * different one from card to card.
  */
-export function CardStyleLayer({ style, height, contentTop, contentBottom, seed = '' }: Props) {
-  const colors = useColors();
-  const styles = useStyles();
+export function CardStyleLayer({ style, seed = '' }: { style: CardStyleId; seed?: string }) {
   const s = cardStyle(style);
   if (s.id === 'glow') return <GlowLayer seed={seed} />;
-  if (!s.art) return null;
-  const art = ART[s.art];
-  const top = Math.max(contentTop + 40, height * 0.22);
-  const bottom = Math.max(contentBottom * 0.7, height * 0.1);
+  if (!s.world) return null;
+  const scenes = SCENES[s.world];
+  return (
+    <Image
+      pointerEvents="none"
+      source={scenes[pick(seed, scenes.length)]}
+      contentFit="cover"
+      style={[StyleSheet.absoluteFill, { backgroundColor: inks[s.world].dark.page }]}
+      accessible={false}
+    />
+  );
+}
 
+type ShadeProps = {
+  /** Where the words start and how tall they are. */
+  top: number;
+  height: number;
+  /** How far the header reaches down, and the reference row and tab bar up. */
+  head: number;
+  foot: number;
+};
+
+/**
+ * Darkness laid softly over a scene where things have to be read: behind the words, and under the header at the top
+ * and the reference row at the bottom. It fades in and out over a long way, like shadow in the scene, with no edge.
+ */
+export function SceneShade({ top, height, head, foot }: ShadeProps) {
+  const colors = useColors();
+  const clear = `rgba(${colors.pageRgb},0)`;
+  const dark = `rgba(${colors.pageRgb},0.5)`;
+  const fade = 110;
+  const whole = height + 2 * fade;
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <View style={[styles.head, { height: top }]}>
-        <Image source={art.source} contentFit="cover" contentPosition={s.focus} style={StyleSheet.absoluteFill} accessible={false} />
-        <LinearGradient
-          colors={[`rgba(${colors.pageRgb},0.35)`, `rgba(${colors.pageRgb},0)`, colors.page]}
-          locations={[0, 0.3, 1]}
-          style={StyleSheet.absoluteFill}
-        />
-      </View>
-      <View style={[styles.foot, { height: bottom }]}>
-        <Image source={art.source} contentFit="cover" contentPosition="bottom" style={StyleSheet.absoluteFill} accessible={false} />
-        <LinearGradient colors={[colors.page, `rgba(${colors.pageRgb},0.55)`]} style={StyleSheet.absoluteFill} />
-      </View>
-      <View style={[styles.rule, { top: top - 14, bottom: bottom - 6, borderColor: s.rule }]}>
-        <View style={[styles.ruleInner, { borderColor: s.rule }]} />
-      </View>
+      <LinearGradient colors={[`rgba(${colors.pageRgb},0.6)`, clear]} style={{ position: 'absolute', left: 0, right: 0, top: 0, height: head + 20 }} />
+      <LinearGradient
+        colors={[clear, dark, dark, clear]}
+        locations={[0, fade / whole, 1 - fade / whole, 1]}
+        style={{ position: 'absolute', left: 0, right: 0, top: top - fade, height: whole }}
+      />
+      <LinearGradient
+        colors={[clear, `rgba(${colors.pageRgb},0.86)`, `rgba(${colors.pageRgb},0.94)`]}
+        locations={[0, 0.45, 1]}
+        style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: foot + 80 }}
+      />
     </View>
   );
 }
@@ -66,7 +94,7 @@ function pick(seed: string, n: number) {
 }
 
 // On paper the veil is heavier: dark manuscript pages under a light veil turn grey, so light mode keeps only a tint.
-const VEIL = { dark: [0.5, 0.78, 0.78, 0.6], light: [0.74, 0.9, 0.9, 0.78] };
+const VEIL = { dark: [0.5, 0.86, 0.86, 0.6], light: [0.74, 0.9, 0.9, 0.78] };
 
 /** A blurred manuscript page drifting very slowly behind the card, dimmed most where the verse sits. */
 function GlowLayer({ seed }: { seed: string }) {
@@ -101,8 +129,4 @@ export function useCardStyle(): CardStyleId {
 
 const useStyles = makeStyles((colors) => ({
   glow: { overflow: 'hidden', backgroundColor: colors.page },
-  head: { position: 'absolute', left: 0, right: 0, top: 0, overflow: 'hidden' },
-  foot: { position: 'absolute', left: 0, right: 0, bottom: 0, overflow: 'hidden' },
-  rule: { position: 'absolute', left: 12, right: 12, borderWidth: 1, borderRadius: 2, opacity: 0.55 },
-  ruleInner: { position: 'absolute', top: 3, left: 3, right: 3, bottom: 3, borderWidth: StyleSheet.hairlineWidth },
 }));

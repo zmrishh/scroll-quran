@@ -4,7 +4,7 @@ import { createJSONStorage, persist, type StateStorage } from 'zustand/middlewar
 
 import type { Topic } from '@/data/content';
 import type { CardStyleId } from '@/data/styles';
-import type { AsrSchool, MethodId } from '@/lib/prayer';
+import type { AsrSchool, MethodId, SalahKey } from '@/lib/prayer';
 import type { AppearancePref } from '@/theme/theme';
 
 import { useCelebration } from './celebration';
@@ -54,6 +54,10 @@ type State = {
   /** Calculation method; null means the usual one for the phone's region. */
   prayerMethod: MethodId | null;
   asrSchool: AsrSchool;
+  /** Prayer alerts, a Plus feature. Stays on through a lapse in Plus, so the alerts come back with it. */
+  prayerAlerts: boolean;
+  /** Which of the five prayers get an alert. */
+  alertPrayers: Record<SalahKey, boolean>;
   appearance: AppearancePref;
   /** Store product IDs of card styles bought. With RevenueCat set up, refreshed from it. */
   ownedStyles: string[];
@@ -107,6 +111,8 @@ type Actions = {
         | 'prayerPlace'
         | 'prayerMethod'
         | 'asrSchool'
+        | 'prayerAlerts'
+        | 'alertPrayers'
         | 'appearance'
       >
     >,
@@ -156,6 +162,8 @@ const initial: State = {
   prayerPlace: null,
   prayerMethod: null,
   asrSchool: 'standard',
+  prayerAlerts: false,
+  alertPrayers: { fajr: true, dhuhr: true, asr: true, maghrib: true, isha: true },
   appearance: 'light',
   ownedStyles: [],
   totals: { views: 0, dhikr: 0, quizAnswered: 0, quizCorrect: 0, memorised: 0, ameen: 0 },

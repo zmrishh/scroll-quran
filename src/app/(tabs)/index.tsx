@@ -8,11 +8,20 @@ import type { FeedItem } from '@/feed/engine';
 import { createSession } from '@/feed/session';
 import { takePendingTopic } from '@/lib/upsell';
 import { useApp } from '@/store/app-store';
-import { makeStyles } from '@/theme/theme';
+import { makeStyles, PaletteOverride, useFeedColors } from '@/theme/theme';
 
 const BATCH = 10;
 
+/** The feed, in its own colours: a card style's world is dark in both themes, and so is the feed set in it. */
 export default function FeedScreen() {
+  return (
+    <PaletteOverride.Provider value={useFeedColors()}>
+      <Feed />
+    </PaletteOverride.Provider>
+  );
+}
+
+function Feed() {
   const styles = useStyles();
   // Cards fill the space above the tab bar, measured rather than assumed.
   const [height, setHeight] = useState(0);

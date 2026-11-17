@@ -16,7 +16,8 @@ export type IconName =
   | 'feed'
   | 'search'
   | 'chevron-left'
-  | 'reset';
+  | 'reset'
+  | 'bell';
 
 type Props = { name: IconName; size?: number; color: string; filled?: boolean; strokeWidth?: number };
 
@@ -83,6 +84,12 @@ export function Icon({ name, size = 24, color, filled = false, strokeWidth = 1.8
         </>
       )}
       {name === 'chevron-left' && <Path {...s} d="m15 18-6-6 6-6" />}
+      {name === 'bell' && (
+        <>
+          <Path {...f} d="M3.26 15.33A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.67C19.41 13.96 18 12.5 18 8A6 6 0 0 0 6 8c0 4.5-1.41 5.96-2.74 7.33" />
+          <Path {...s} d="M10.27 21a2 2 0 0 0 3.46 0" />
+        </>
+      )}
       {name === 'reset' && (
         <>
           <Path {...s} d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />

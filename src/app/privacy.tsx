@@ -45,6 +45,11 @@ export default function Privacy() {
         Your location is not sent anywhere. You can turn location access off at any time in your phone’s settings.
       </Block>
 
+      <Block title="Notifications">
+        Prayer alerts are scheduled on your phone from the times it works out there. No server is involved and nothing is
+        sent to deliver them.
+      </Block>
+
       <Block title="Purchases">
         <Para>
           Scroll Quran Plus and card styles are sold through the {STORE}. {COMPANY} takes the payment;
