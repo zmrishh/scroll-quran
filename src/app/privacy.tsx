@@ -11,10 +11,10 @@ const BACKUP = Platform.OS === 'android' ? 'Google' : 'iCloud';
 // Keep in step with site/privacy.html, the copy the store listings link to.
 export default function Privacy() {
   return (
-    <DocScreen title="Privacy" meta="Effective 28 October 2026">
+    <DocScreen title="Privacy" meta="Effective 17 November 2026">
       <Block title="In short">
-        Scroll Quran has no ads, no analytics and no tracking. Signing in is optional, and what you do in the app stays on
-        your phone.
+        Scroll Quran runs no analytics of its own and does not track you. The free version shows ads from Google; Scroll
+        Quran Plus has none. Signing in is optional, and what you do in the app stays on your phone.
       </Block>
 
       <Block title="Signing in">
@@ -50,6 +50,27 @@ export default function Privacy() {
         sent to deliver them.
       </Block>
 
+      <Block title="Ads">
+        <Para>
+          Without Plus, the feed has ads on cards of their own, never on a card of Quran. They come from Google AdMob. The
+          app asks only for ads that are not chosen from what you do (non-personalised) and that suit all ages, and it
+          never asks to track you across other apps.
+        </Para>
+        <Para>To show ads, count them and measure them, Google receives:</Para>
+        <Bullets
+          items={[
+            'your IP address, which tells it roughly where you are;',
+            'your device type, operating system and app version, and an identifier for your device or for this app on it. Your phone’s advertising ID is included only if the phone gives it out; an iPhone doesn’t, because the app never asks to track you;',
+            'which ads were shown and tapped, and crash and performance information from the ad software.',
+          ]}
+        />
+        <Para>
+          Where the law asks for your consent, in Europe and the UK, Google’s form asks you first, and You → Ad choices lets
+          you change your answer. With Plus the app does not ask Google for ads.
+        </Para>
+      </Block>
+      <DocLink label="How Google uses this information" onPress={() => openLink(LINKS.googleAdsPrivacy)} />
+
       <Block title="Purchases">
         <Para>
           Scroll Quran Plus and card styles are sold through the {STORE}. {COMPANY} takes the payment;
@@ -80,8 +101,8 @@ export default function Privacy() {
       </Block>
 
       <Block title="Children">
-        Scroll Quran is not directed at children under 13, and apart from the sign-in details above it collects no personal
-        information from anyone.
+        Scroll Quran is not directed at children under 13. Apart from the sign-in details and the ad information above, it
+        collects no personal information from anyone.
       </Block>
 
       <Block title="Your choices">
@@ -89,6 +110,7 @@ export default function Privacy() {
           items={[
             'To delete your account, open the You tab and tap Delete account. It erases everything the app stored on your phone and unlinks your purchases from your account.',
             'To stop Scroll Quran using your Apple ID: Settings → your name → Sign-In & Security → Sign in with Apple. For Google: your Google Account → Security → Your connections to third-party apps & services.',
+            'To stop seeing ads, subscribe to Plus. On Android you can also delete your advertising ID: Settings → Google → Ads.',
             `To cancel Plus, use your ${STORE} subscription settings. Deleting the app does not cancel it.`,
             `To have your purchase record at RevenueCat deleted, email us with your ${STORE} order ID and we will delete the matching record.`,
           ]}

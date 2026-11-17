@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Pressable, Text, useWindowDimensions, View } from 'react-native';
+import { Text, useWindowDimensions, View } from 'react-native';
 import Animated, {
   Easing,
   FadeIn,
@@ -14,8 +14,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { haptic } from '@/lib/feedback';
-import { openPaywall } from '@/lib/upsell';
-import { remainingToday, useApp } from '@/store/app-store';
+import { useApp } from '@/store/app-store';
 import { useCelebration } from '@/store/celebration';
 import { makeStyles, useColors } from '@/theme/theme';
 import { fonts, layout } from '@/theme/tokens';
@@ -61,8 +60,6 @@ function Celebration({ streak }: { streak: number }) {
   const numberHeight = short ? SHORT_NUMBER_HEIGHT : NUMBER_HEIGHT;
   const read = useApp((s) => s.viewedToday);
   const activeDays = useApp((s) => s.activeDays);
-  // The goal is met on the last free card, which is also when a free reader most wants more.
-  const outOfFree = useApp((s) => !s.premium && remainingToday(s) === 0);
   const burst = useSharedValue(0);
   const flip = useSharedValue(0);
   const enter = useSharedValue(0);
@@ -133,18 +130,6 @@ function Celebration({ streak }: { streak: number }) {
 
       <Animated.View entering={FadeIn.delay(DOT_AT + 200).duration(400)} style={styles.footer}>
         <PrimaryButton label="Continue" onPress={() => useCelebration.setState({ streak: 0 })} />
-        {outOfFree && (
-          <Pressable
-            hitSlop={10}
-            onPress={() => {
-              useCelebration.setState({ streak: 0 });
-              openPaywall('limit');
-            }}
-            style={styles.more}
-            accessibilityRole="button">
-            <Text style={styles.moreText}>Keep reading with Plus</Text>
-          </Pressable>
-        )}
       </Animated.View>
     </Animated.View>
   );
@@ -232,6 +217,4 @@ const useStyles = makeStyles((colors) => ({
   dotFill: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.gold },
   dayLabel: { fontFamily: fonts.ui, fontSize: 12, color: colors.faint },
   footer: { width: '100%', maxWidth: 420, alignSelf: 'center' },
-  more: { alignSelf: 'center', marginTop: 16, paddingVertical: 2 },
-  moreText: { fontFamily: fonts.uiMedium, fontSize: 15, color: colors.gold },
 }));

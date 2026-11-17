@@ -20,8 +20,15 @@ channel, and a production build refuses to start without the RevenueCat key.
    `https://zmrishh.github.io/scroll-quran/privacy.html` and `https://zmrishh.github.io/scroll-quran/`.
 5. **App information.** Privacy Policy URL and Support URL as above. Licence agreement: Apple's standard EULA (the
    default). Category: Reference or Books. Age rating: 4+.
-6. **App Privacy.** Data collected: **User ID** and **Purchase history**, both linked to the user, used for app
-   functionality, not for tracking. Nothing else: name, email and location stay on the phone. No tracking.
+6. **App Privacy.** For purchases: **User ID** and **Purchase history**, both linked to the user, used for app
+   functionality. For the ads in the free version, add what Google's ad SDK collects, used for third-party
+   advertising and analytics: **Coarse location** (from the IP address), **Device ID**, **Advertising data**,
+   **Product interaction**, **Crash data** and **Performance data**. Google keeps the list at
+   developers.google.com/admob/ios/privacy/data-disclosure; check it before each submission. Tracking: **No**. The app
+   never asks for tracking permission and asks only for non-personalised ads. Name, email and the location used for
+   prayer times stay on the phone.
+   **AdMob** has the iOS app and its banner ad unit, the real app ID is in `app.json` and the unit ID in `.env`
+   (see the README), sensitive ad categories are blocked, and the European regulations message is published.
 7. **Screenshots** from the real app (6.9-inch iPhone set). No prices or claims that differ from the paywall, and no
    other platforms in the text or images.
 8. **Description** without "Android", "Google Play" or "free trial".
@@ -35,8 +42,11 @@ Paste into App Review Information → Notes:
 > Scroll Quran is a short-form Quran reader. No account is needed: complete the three onboarding questions, then tap
 > "Not now" on the sign-in screen, or use Sign in with Apple.
 >
-> In-app purchases: Scroll Quran Plus (yearly and monthly) is offered after onboarding and when the free daily
-> cards run out in the feed. Card styles are under You → Card style; Plus includes them, and they can also be bought one at a time. Restore Purchases is on
+> The free version shows Google AdMob ads on cards of their own in the feed, after every five cards; they are
+> non-personalised and the app does not ask to track. Scroll Quran Plus removes them.
+>
+> In-app purchases: Scroll Quran Plus (yearly and monthly) is offered after onboarding and from the ad cards in the
+> feed. Card styles are under You → Card style; Plus includes them, and they can also be bought one at a time. Restore Purchases is on
 > both screens.
 >
 > Location is requested only when you tap "Show today's prayers" on the Quran tab, and is used on the device to work out

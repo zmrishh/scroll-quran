@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Text, View, type HostInstance } from 'react-native';
+import { Text, type HostInstance } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 
 import { contentKey, DHIKR, DUAS, NAMES, PASSAGES, passageRef, surahInfo, type ContentKind } from '@/data/content';
@@ -11,10 +11,11 @@ import { saveOrUpsell } from '@/lib/upsell';
 import { useApp, type Mood } from '@/store/app-store';
 import { useChrome } from '@/theme/layout';
 import { makeStyles, useColors } from '@/theme/theme';
-import { fonts, layout } from '@/theme/tokens';
+import { fonts } from '@/theme/tokens';
 
 import { CardFooter } from './action-row';
 import { CardFrame } from './card-frame';
+import { AdCard } from './cards/ad-card';
 import { AyahCard, ayahPages, PagedAyahCard } from './cards/ayah-card';
 import { CheckInCard } from './cards/checkin-card';
 import { DuaCard, NameCard } from './cards/content-cards';
@@ -22,10 +23,17 @@ import { DhikrCard } from './cards/dhikr-card';
 import { QuizCard } from './cards/quiz-card';
 import { Icon } from './icon';
 import { NoteSheet } from './note-sheet';
-import { PaywallPanel } from './paywall-panel';
 import { PageBars } from './reading';
 
-type Props = { item: FeedItem; height: number; active: boolean; showHint?: boolean; onMood?: (mood: Mood) => void };
+type Props = {
+  item: FeedItem;
+  height: number;
+  active: boolean;
+  /** The card is on screen or next to the one that is. */
+  near?: boolean;
+  showHint?: boolean;
+  onMood?: (mood: Mood) => void;
+};
 
 /** One quiet line saying where a card comes from. */
 export function footerLabel(item: FeedItem): string {
@@ -70,13 +78,13 @@ export function footerArabic(item: FeedItem): string | undefined {
   return p ? surahInfo(p.surah).arabic : undefined;
 }
 
-export function FeedCard({ item, height, active, showHint, onMood }: Props) {
+export function FeedCard({ item, height, active, near = active, showHint, onMood }: Props) {
   const chrome = useChrome();
   const shotRef = useRef<HostInstance>(null);
   const [capturing, setCapturing] = useState(false);
   const [page, setPage] = useState(0);
   const [noteOpen, setNoteOpen] = useState(false);
-  const key = item.kind === 'quiz' || item.kind === 'limit' || item.kind === 'checkin' ? null : contentKey(item.kind, item.id);
+  const key = item.kind === 'quiz' || item.kind === 'ad' || item.kind === 'checkin' ? null : contentKey(item.kind, item.id);
   const liked = useApp((s) => (key ? !!s.liked[key] : false));
   const saved = useApp((s) => (key ? !!s.saved[key] : false));
   const noted = useApp((s) => (key ? !!s.notes[key] : false));
@@ -92,7 +100,7 @@ export function FeedCard({ item, height, active, showHint, onMood }: Props) {
     if (active && item.kind === 'name') useApp.getState().seeName(item.id);
   }, [active, item]);
 
-  if (item.kind === 'limit') return <LimitCard height={height} />;
+  if (item.kind === 'ad') return <AdCard height={height} near={near} />;
 
   const turn = (side: 'next' | 'prev') => {
     const next = side === 'next' ? page + 1 : page - 1;
@@ -215,31 +223,7 @@ function SwipeHint({ bottom }: { bottom: number }) {
   );
 }
 
-/**
- * The end of the free feed: the paywall itself, with no way to dismiss it.
- * New free cards arrive at midnight; until then the only way on is Plus.
- */
-function LimitCard({ height }: { height: number }) {
-  const styles = useStyles();
-  const chrome = useChrome();
-  const now = new Date();
-  const midnight = new Date(now);
-  midnight.setHours(24, 0, 0, 0);
-  const mins = Math.max(1, Math.round((midnight.getTime() - now.getTime()) / 60000));
-  const resetIn = mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : `${mins}m`;
-
-  return (
-    <View style={[styles.limit, { height, paddingTop: chrome.contentTop - 10, paddingBottom: 16 + chrome.tabBar }]}>
-      {/* A short screen leaves out the paywall's second line and the price per day, so everything fits. */}
-      <PaywallPanel reason="limit" compact tight={height < 700} />
-      <Text style={styles.limitReset}>Your free cards come back in {resetIn}.</Text>
-    </View>
-  );
-}
-
 const useStyles = makeStyles((colors) => ({
   hint: { position: 'absolute', left: 0, right: 0, alignItems: 'center', gap: 2 },
   hintText: { fontFamily: fonts.ui, fontSize: 12.5, color: colors.faint },
-  limit: { backgroundColor: colors.page, paddingHorizontal: layout.gutter, justifyContent: 'center' },
-  limitReset: { fontFamily: fonts.ui, fontSize: 12.5, color: colors.quiet, textAlign: 'center', marginTop: 10 },
 }));

@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TOPICS, topicLabel, type Topic } from '@/data/content';
 import { haptic } from '@/lib/feedback';
 import { openPaywall } from '@/lib/upsell';
-import { FREE_DAILY_CARDS, useApp } from '@/store/app-store';
+import { useApp } from '@/store/app-store';
 import { HEADER_HEIGHT } from '@/theme/layout';
 import { makeStyles, useColors } from '@/theme/theme';
 import { fonts, layout } from '@/theme/tokens';
@@ -14,12 +14,11 @@ import { Icon } from './icon';
 
 type Props = { topic: Topic | null; onTopic: (t: Topic | null) => void };
 
-/** Wordmark, a topic picker and today's count. Nothing else sits above the verse. */
+/** Wordmark and a topic picker. Nothing else sits above the verse. */
 export function FeedHeader({ topic, onTopic }: Props) {
   const colors = useColors();
   const styles = useStyles();
   const insets = useSafeAreaInsets();
-  const viewed = useApp((s) => s.viewedToday);
   const premium = useApp((s) => s.premium);
   const [open, setOpen] = useState(false);
 
@@ -28,11 +27,6 @@ export function FeedHeader({ topic, onTopic }: Props) {
       <View style={styles.row}>
         <Text style={styles.word}>Scroll Quran</Text>
         <View style={styles.right}>
-          {!premium && (
-            <Text style={styles.count} accessibilityLabel={`${viewed} of ${FREE_DAILY_CARDS} cards today`}>
-              {Math.min(viewed, FREE_DAILY_CARDS)}/{FREE_DAILY_CARDS}
-            </Text>
-          )}
           <Pressable
             hitSlop={10}
             onPress={() => {
@@ -110,7 +104,6 @@ const useStyles = makeStyles((colors) => ({
   row: { height: HEADER_HEIGHT, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: layout.gutter },
   word: { fontFamily: fonts.uiMedium, fontSize: 14, color: colors.quiet },
   right: { flexDirection: 'row', alignItems: 'center', gap: 18 },
-  count: { fontFamily: fonts.ui, fontSize: 13, color: colors.faint, fontVariant: ['tabular-nums'] },
   picker: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   pickerText: { fontFamily: fonts.uiMedium, fontSize: 14, color: colors.read },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },

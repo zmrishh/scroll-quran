@@ -9,8 +9,6 @@ import type { AppearancePref } from '@/theme/theme';
 
 import { useCelebration } from './celebration';
 
-/** Free users read this many cards a day, then the feed ends in a paywall until tomorrow. */
-export const FREE_DAILY_CARDS = 5;
 /** Free users can keep this many saved cards. */
 export const FREE_SAVES = 3;
 
@@ -40,7 +38,7 @@ type State = {
   premium: boolean;
   day: string;
   viewedToday: number;
-  /** Cards a day that complete a streak day. Free users' goal is capped at the free limit. */
+  /** Cards a day that complete a streak day. */
   dailyGoal: number;
   streak: number;
   /** The last day the daily goal was reached. */
@@ -153,7 +151,7 @@ const initial: State = {
   premium: false,
   day: today(),
   viewedToday: 0,
-  dailyGoal: FREE_DAILY_CARDS,
+  dailyGoal: DAILY_GOALS[0],
   streak: 0,
   lastActiveDay: '',
   account: null,
@@ -209,7 +207,7 @@ export const useApp = create<State & Actions>()(
           const t = today();
           const viewedToday = s.day === t ? s.viewedToday + 1 : 1;
           const totals = { ...s.totals, views: s.totals.views + 1 };
-          if (viewedToday < dailyTarget(s) || s.lastActiveDay === t) {
+          if (viewedToday < s.dailyGoal || s.lastActiveDay === t) {
             set({ day: t, viewedToday, totals });
             return;
           }
@@ -319,16 +317,8 @@ export const useApp = create<State & Actions>()(
 /** Today's mood, if the reader has checked in today. */
 export const moodToday = (s: Pick<State, 'mood'>) => (s.mood?.day === today() ? s.mood.mood : null);
 
-/** Cards that complete today's streak day. A free user's goal can't be more than they're allowed to read. */
-export const dailyTarget = (s: Pick<State, 'premium' | 'dailyGoal'>) =>
-  s.premium ? s.dailyGoal : Math.min(s.dailyGoal, FREE_DAILY_CARDS);
-
 /** The streak as it stands now: it lapses once a whole day passes without reaching the goal. */
 export const currentStreak = (s: Pick<State, 'streak' | 'lastActiveDay'>) =>
   s.lastActiveDay === today() || s.lastActiveDay === yesterday() ? s.streak : 0;
 
 export const isToday = (day: string) => day === today();
-
-/** Cards a free user can still see today. */
-export const remainingToday = (s: Pick<State, 'premium' | 'viewedToday' | 'day'>) =>
-  s.premium ? Infinity : Math.max(0, FREE_DAILY_CARDS - (s.day === today() ? s.viewedToday : 0));

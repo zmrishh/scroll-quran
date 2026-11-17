@@ -13,6 +13,7 @@ export const LINKS = {
   tanzil: 'https://tanzil.net',
   metOpenAccess: 'https://www.metmuseum.org/hubs/open-access',
   revenueCatPrivacy: 'https://www.revenuecat.com/privacy',
+  googleAdsPrivacy: 'https://policies.google.com/technologies/partner-sites',
   privacyOnWeb: 'https://zmrishh.github.io/scroll-quran/privacy.html',
 };
 

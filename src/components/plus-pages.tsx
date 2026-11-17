@@ -35,23 +35,20 @@ export function termsFor(price: string) {
   return price ? `${price}. Renews automatically until you cancel.` : '';
 }
 
-type TilesProps = {
-  plan: Plan;
-  onPick: (plan: Plan) => void;
-  delay?: number;
-  /** Shows what the chosen plan comes to per day; off where there's little room. */
-  showDaily?: boolean;
-};
+type TilesProps = { plan: Plan; onPick: (plan: Plan) => void; delay?: number };
 
 /**
- * Yearly and Monthly side by side, with what the chosen one comes to per day underneath. The amount actually charged
- * is the largest price on each tile; Apple requires that, so the per-month and per-day figures sit smaller.
+ * Yearly and Monthly side by side, with what the chosen one comes to per day in a sentence underneath. The amount
+ * actually charged is the largest price on each tile, as Apple requires; the price per day sits right under it,
+ * smaller, and stands out by its colour instead.
  */
-export function PlanTiles({ plan, onPick, delay = 0, showDaily = true }: TilesProps) {
+export function PlanTiles({ plan, onPick, delay = 0 }: TilesProps) {
   const styles = useStyles();
   const { yearly, monthly } = usePlans();
-  const monthOfYear = yearly ? perDay(yearly, 12) : null;
-  const daily = plan === 'yearly' && yearly ? perDay(yearly) : plan === 'monthly' && monthly ? perDay(monthly, 30) : null;
+  // A month is taken as 30 days.
+  const yearlyDay = yearly ? perDay(yearly) : null;
+  const monthlyDay = monthly ? perDay(monthly, 30) : null;
+  const daily = plan === 'yearly' ? yearlyDay : monthlyDay;
 
   return (
     <View>
@@ -63,18 +60,24 @@ export function PlanTiles({ plan, onPick, delay = 0, showDaily = true }: TilesPr
             title="Yearly"
             price={yearly.short}
             unit="/year"
-            line={monthOfYear ? `${monthOfYear} a month` : 'billed yearly'}
-            gold={!!monthOfYear}
+            line={yearlyDay ? `${yearlyDay} a day` : 'billed yearly'}
             onPress={() => onPick('yearly')}
           />
         )}
         {monthly && (
-          <Tile on={plan === 'monthly'} title="Monthly" price={monthly.short} unit="/month" line="billed monthly" onPress={() => onPick('monthly')} />
+          <Tile
+            on={plan === 'monthly'}
+            title="Monthly"
+            price={monthly.short}
+            unit="/month"
+            line={monthlyDay ? `${monthlyDay} a day` : 'billed monthly'}
+            onPress={() => onPick('monthly')}
+          />
         )}
       </Animated.View>
-      {showDaily && daily && (
+      {daily && (
         <Animated.Text key={plan} entering={FadeIn.delay(plan === 'yearly' ? delay + 450 : 0).duration(500)} style={styles.daily}>
-          That’s {daily} a day for {HOURS_A_YEAR} hours with the{' '}Quran.
+          That’s {daily} a day for {HOURS_A_YEAR} hours with the{' '}Quran.
         </Animated.Text>
       )}
     </View>
@@ -152,20 +155,20 @@ type TileProps = {
   /** The amount actually charged, the largest price on the tile. */
   price: string;
   unit: string;
+  /** Under it, in gold: what that comes to per day. */
   line: string;
-  /** Sets the line in gold, for the per-month figure. */
-  gold?: boolean;
   badge?: string | null;
   onPress: () => void;
 };
 
 /** A plan as a quiet card; the chosen one takes the gold edge. */
-function Tile({ on, title, price, unit, line, gold, badge, onPress }: TileProps) {
+function Tile({ on, title, price, unit, line, badge, onPress }: TileProps) {
   const styles = useStyles();
   return (
     <Pressable
       accessibilityRole="radio"
       accessibilityState={{ checked: on }}
+      accessibilityLabel={`${title}: ${price} ${unit.replace('/', 'a ')}, ${line}${badge ? `, ${badge}` : ''}`}
       onPress={() => {
         haptic.tap();
         onPress();
@@ -177,7 +180,7 @@ function Tile({ on, title, price, unit, line, gold, badge, onPress }: TileProps)
         <Text style={styles.tilePrice}>{price || '…'}</Text>
         <Text style={styles.tileUnit}>{unit}</Text>
       </View>
-      <Text style={[styles.tileLine, gold && styles.tileGold]}>{line}</Text>
+      <Text style={styles.tileLine}>{line}</Text>
     </Pressable>
   );
 }
@@ -220,8 +223,7 @@ const useStyles = makeStyles((colors) => ({
   priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 3, marginTop: 6 },
   tilePrice: { fontFamily: fonts.read, fontSize: 28, lineHeight: 36, color: colors.text, fontVariant: ['tabular-nums'] },
   tileUnit: { fontFamily: fonts.ui, fontSize: 13, color: colors.quiet },
-  tileLine: { fontFamily: fonts.ui, fontSize: 13, color: colors.quiet, marginTop: 4, textAlign: 'center' },
-  tileGold: { fontFamily: fonts.uiSemi, fontSize: 15, color: colors.gold },
+  tileLine: { fontFamily: fonts.uiSemi, fontSize: 15, color: colors.gold, marginTop: 4, textAlign: 'center' },
   daily: { fontFamily: fonts.read, fontSize: 16, lineHeight: 24, color: colors.read, textAlign: 'center', marginTop: 24 },
 
   spacer: { flex: 1, minHeight: 24 },

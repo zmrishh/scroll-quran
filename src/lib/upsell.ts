@@ -6,7 +6,7 @@ import { FREE_SAVES, useApp } from '@/store/app-store';
 import { haptic } from './feedback';
 import { turnOnPrayerAlerts } from './prayer-alerts';
 
-export type PaywallReason = 'welcome' | 'limit' | 'saves' | 'topic' | 'styles' | 'alerts';
+export type PaywallReason = 'welcome' | 'ads' | 'saves' | 'topic' | 'styles' | 'alerts';
 
 /**
  * What the paywall interrupted, finished once Plus turns on: the card being saved, the topic being opened, or prayer

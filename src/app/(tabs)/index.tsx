@@ -6,6 +6,7 @@ import { FeedHeader } from '@/components/feed-header';
 import type { Topic } from '@/data/content';
 import type { FeedItem } from '@/feed/engine';
 import { createSession } from '@/feed/session';
+import { startAds } from '@/lib/ads';
 import { takePendingTopic } from '@/lib/upsell';
 import { useApp } from '@/store/app-store';
 import { makeStyles, PaletteOverride, useFeedColors } from '@/theme/theme';
@@ -33,6 +34,7 @@ function Feed() {
   const listRef = useRef<FlatList<FeedItem>>(null);
   const seen = useRef(new Set<string>());
   const activeSince = useRef(0);
+  const activeAt = useRef(0);
   const onActiveChange = useRef<(index: number) => void>(() => {});
   const restart = useRef<() => void>(() => {});
   const changeTopicRef = useRef<(t: Topic | null) => void>(() => {});
@@ -40,6 +42,8 @@ function Feed() {
   useEffect(() => {
     activeSince.current = Date.now();
     useApp.getState().touchDay();
+    // Ads start with the feed, never during the intro; with Plus this does nothing.
+    startAds();
   }, []);
 
   // Coming back to the app on a new day starts a fresh feed, so yesterday's limit and
@@ -54,34 +58,33 @@ function Feed() {
     return () => sub.remove();
   }, []);
 
-  // Upgrading opens the topic that was tapped, or removes the limit card and keeps the feed flowing. Losing Plus
-  // (a lapsed subscription, a refund) starts "For you" again under the free allowance.
+  // Upgrading opens the topic that was tapped, or takes the ads still to come out of the feed. Losing Plus (a lapsed
+  // subscription, a refund) starts "For you" again, with ads.
   useEffect(
     () =>
       useApp.subscribe((s, prev) => {
-        // Development only: "Reset today's free cards" in the You tab.
-        if (!s.premium && s.day === prev.day && s.viewedToday === 0 && prev.viewedToday > 0) changeTopicRef.current(null);
         if (s.premium === prev.premium) return;
         const topic = s.premium ? takePendingTopic() : null;
         if (!s.premium || topic) changeTopicRef.current(topic);
-        else if (session.unlock()) setItems((list) => [...list.filter((i) => i.kind !== 'limit'), ...session.take(BATCH)]);
+        else setItems((list) => list.filter((i, index) => i.kind !== 'ad' || index <= activeAt.current));
       }),
-    [session],
+    [],
   );
 
   useEffect(() => {
+    activeAt.current = active;
     onActiveChange.current = (index) => {
       const prev = items[active];
       const next = items[index];
       if (!next) return;
       const app = useApp.getState();
-      if (next.kind !== 'limit' && next.kind !== 'checkin' && !seen.current.has(next.key)) {
+      if (next.kind !== 'ad' && next.kind !== 'checkin' && !seen.current.has(next.key)) {
         seen.current.add(next.key);
         app.recordView();
       }
       if (index === active) return;
       const dwell = Date.now() - activeSince.current;
-      if (prev && prev.kind !== 'limit' && prev.kind !== 'checkin') {
+      if (prev && prev.kind !== 'ad' && prev.kind !== 'checkin') {
         if (dwell > 4000) app.nudge(prev.topics, 1);
         else if (dwell < 1200) app.nudge(prev.topics, -0.5);
       }
@@ -130,6 +133,7 @@ function Feed() {
               item={item}
               height={height}
               active={index === active}
+              near={Math.abs(index - active) <= 1}
               showHint={index === 0 && !hintSeen && item.kind !== 'checkin'}
               onMood={onMood}
             />
@@ -143,7 +147,7 @@ function Feed() {
           onViewableItemsChanged={onViewable}
           viewabilityConfig={viewability}
           onEndReached={() => {
-            if (!session.limited) setItems((list) => [...list, ...session.take(BATCH)]);
+            setItems((list) => [...list, ...session.take(BATCH)]);
           }}
           onEndReachedThreshold={3}
           windowSize={5}

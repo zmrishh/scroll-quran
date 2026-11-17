@@ -13,6 +13,7 @@ import { Ring, SectionHeader, Surface } from '@/components/ui';
 import { NAMES } from '@/data/content';
 import { cardStyle } from '@/data/styles';
 import { moodInfo } from '@/data/moods';
+import { showAdChoices, useAds } from '@/lib/ads';
 import { deleteAccount, signOut } from '@/lib/auth';
 import { confirm } from '@/lib/confirm';
 import { isDemo, STORE } from '@/lib/purchases';
@@ -20,8 +21,6 @@ import { openPaywall } from '@/lib/upsell';
 import {
   currentStreak,
   DAILY_GOALS,
-  dailyTarget,
-  FREE_DAILY_CARDS,
   isToday,
   moodToday,
   useApp,
@@ -62,10 +61,11 @@ export default function YouScreen() {
   const tabBar = useTabBarSpace();
   const s = useApp();
   const look = useCardStyle();
+  const adChoices = useAds((a) => a.choices);
   const mood = moodToday(s);
   const namesMet = NAMES.filter((n) => s.seenNames[n.id]).length;
   const streak = currentStreak(s);
-  const target = dailyTarget(s);
+  const target = s.dailyGoal;
   const viewed = isToday(s.day) ? s.viewedToday : 0;
   const left = Math.max(0, target - viewed);
   const cardsLeft = `${left} more card${left === 1 ? '' : 's'}`;
@@ -126,10 +126,7 @@ export default function YouScreen() {
               <Text style={styles.ringValue}>{viewed}</Text>
             </Ring>
             <Text style={styles.halfLabel}>cards today</Text>
-            <Text style={styles.halfNote}>
-              {`Goal ${target}`}
-              {!s.premium && s.dailyGoal > FREE_DAILY_CARDS ? ` (${s.dailyGoal} with Plus)` : ''}
-            </Text>
+            <Text style={styles.halfNote}>{`Goal ${target}`}</Text>
           </Surface>
           <Surface style={styles.half}>
             <Text style={styles.halfLabel}>Your heart today</Text>
@@ -156,12 +153,12 @@ export default function YouScreen() {
               <Text style={styles.plusTitle}>Scroll Quran Plus</Text>
               <Text style={styles.plusBadge}>Active</Text>
             </View>
-            <Text style={styles.plusBody}>No daily limit, every topic feed, prayer alerts, unlimited saves, clean shares and every card style.</Text>
+            <Text style={styles.plusBody}>No ads, every topic feed, prayer alerts, unlimited saves, clean shares and every card style.</Text>
           </Surface>
         ) : (
           <Surface accent style={styles.plus}>
             <Text style={styles.plusTitle}>Scroll Quran Plus</Text>
-            <Text style={styles.plusBody}>No daily limit, every topic feed, prayer alerts, unlimited saves and every card style.</Text>
+            <Text style={styles.plusBody}>No ads, every topic feed, prayer alerts, unlimited saves and every card style.</Text>
             <PrimaryButton label="See Plus" onPress={() => openPaywall('welcome')} style={{ marginTop: 16 }} />
           </Surface>
         )}
@@ -203,6 +200,8 @@ export default function YouScreen() {
           <Row label="Sources and licences" onPress={() => router.push('/about')} />
           <Row label="Privacy" divider onPress={() => router.push('/privacy')} />
           <Row label="Terms of use" divider onPress={() => router.push('/terms')} />
+          {/* Only where the reader must be able to change their answer about ads (Europe, the UK). */}
+          {adChoices && !s.premium && <Row label="Ad choices" divider onPress={showAdChoices} />}
           <Row
             label="Replay the intro"
             divider
@@ -213,9 +212,6 @@ export default function YouScreen() {
             }}
           />
           {isDemo && s.premium && <Row label="Turn off Plus (demo)" divider onPress={() => s.set({ premium: false })} />}
-          {__DEV__ && !s.premium && s.viewedToday > 0 && (
-            <Row label="Reset today’s free cards (development)" divider onPress={() => useApp.setState({ viewedToday: 0 })} />
-          )}
         </Surface>
 
         {!s.account && (

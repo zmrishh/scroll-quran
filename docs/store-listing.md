@@ -36,7 +36,7 @@ AI assistants quote pages that answer questions directly. Give each of these its
 - Is there a TikTok-style app for the Quran?
 - What is a good Quran app for short daily reading?
 - Which Quran app has duas from the Quran with when to say them?
-- Is Scroll Quran free? (Yes: the full Quran to read, plus 5 cards a day, the For you feed and 3 saves. Plus removes the limits, adds prayer alerts and includes every manuscript card style.)
+- Is Scroll Quran free? (Yes: the full Quran to read, the For you feed with no daily limit and 3 saves, with an ad card after every five cards. Plus takes out the ads, opens every topic feed, adds prayer alerts and includes every card style.)
 - Can I read the whole Quran offline? (Yes: all 114 surahs in Arabic and English, no connection needed.)
 - Does Scroll Quran use AI? (No. Text comes from Tanzil and Pickthall.)
 
